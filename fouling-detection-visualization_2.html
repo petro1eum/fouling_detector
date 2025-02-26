@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cross-Flow Heat Exchanger Fouling Detection</title>
+    <title>Cross-Flow Heat Exchanger Fouling Detection Simulator</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -26,6 +26,76 @@
             --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
             --border-radius: 10px;
             --transition: all 0.3s ease;
+        }
+        
+        /* Page header styles */
+        .page-header {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary-color), var(--primary-light));
+            padding: 30px 0;
+            margin-bottom: 30px;
+            text-align: center;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-md);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .page-header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><path d="M0,0 L100,0 L100,100 L0,100 Z" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/></svg>');
+            background-size: 30px 30px;
+            opacity: 0.5;
+        }
+        
+        .page-header h1 {
+            color: white;
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: none;
+            -webkit-text-fill-color: white;
+            position: relative;
+        }
+        
+        .page-header p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 15px auto 0;
+            position: relative;
+        }
+        
+        /* Footer styles */
+        .page-footer {
+            margin-top: 50px;
+            padding: 25px 0;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        
+        .page-footer .copyright {
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        
+        .page-footer .disclaimer {
+            max-width: 800px;
+            margin: 0 auto;
+            font-style: italic;
+        }
+        
+        .page-footer .paper-reference {
+            margin-top: 8px;
+            font-weight: 500;
+            color: var(--primary-color);
         }
 
         * {
@@ -192,53 +262,167 @@
         }
 
         .slider-container {
-            display: flex;
-            align-items: center;
-            margin: 15px 0;
-            background-color: var(--equation-bg);
+            margin: 8px 0;
+            background-color: var(--card-bg);
+            border-radius: 8px;
             padding: 12px 15px;
-            border-radius: var(--border-radius);
+            border: 1px solid var(--border-color);
             box-shadow: var(--shadow-sm);
-        }
-
-        .slider-container label {
-            flex: 0 0 120px;
-            font-weight: 500;
-            color: var(--text-color);
-        }
-
-        input[type="range"] {
-            flex: 1;
-            height: 5px;
-            -webkit-appearance: none;
-            appearance: none;
-            background: #d1d5db;
-            border-radius: 5px;
-            outline: none;
-            margin: 0 15px;
-        }
-
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: var(--primary-color);
-            cursor: pointer;
             transition: var(--transition);
         }
 
-        input[type="range"]::-webkit-slider-thumb:hover {
-            background: var(--primary-dark);
-            transform: scale(1.2);
+        .slider-container:hover {
+            box-shadow: var(--shadow-md);
+            border-color: var(--primary-light);
         }
 
-        .slider-container span {
-            flex: 0 0 60px;
+        .slider-container label {
+            display: block;
+            margin-bottom: 8px;
             font-weight: 500;
+            color: var(--text-color);
+            font-size: 0.95rem;
+        }
+
+        .slider-container .slider-row {
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+
+        .slider-container .value {
+            min-width: 70px;
             text-align: right;
+            font-size: 1rem;
+            font-weight: 600;
             color: var(--primary-color);
+            background: rgba(67, 97, 238, 0.1);
+            padding: 3px 8px;
+            border-radius: 4px;
+            margin-left: 10px;
+            transition: var(--transition);
+        }
+
+        .slider-container .value.changed {
+            animation: highlight-value 1s ease;
+        }
+
+        @keyframes highlight-value {
+            0% { 
+                background-color: rgba(67, 97, 238, 0.1);
+                transform: scale(1); 
+            }
+            50% { 
+                background-color: rgba(67, 97, 238, 0.4);
+                transform: scale(1.1); 
+            }
+            100% { 
+                background-color: rgba(67, 97, 238, 0.1);
+                transform: scale(1); 
+            }
+        }
+
+        .settings-info {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            font-style: italic;
+            margin-top: 8px;
+            line-height: 1.4;
+        }
+
+        /* Enhanced slider track */
+        input[type="range"] {
+            flex: 1;
+            -webkit-appearance: none;
+            appearance: none;
+            height: 8px;
+            background: linear-gradient(to right, var(--primary-light) 0%, var(--primary-color) 100%);
+            border-radius: 4px;
+            outline: none;
+            margin: 0;
+            cursor: pointer;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        /* Enhanced slider thumb */
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 2px solid var(--primary-color);
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            transition: all 0.15s ease;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 2px solid var(--primary-color);
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            transition: all 0.15s ease;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover,
+        input[type="range"]::-webkit-slider-thumb:active {
+            transform: scale(1.15);
+            background: var(--primary-light);
+        }
+
+        input[type="range"]::-moz-range-thumb:hover,
+        input[type="range"]::-moz-range-thumb:active {
+            transform: scale(1.15);
+            background: var(--primary-light);
+        }
+
+        /* Slider track for Firefox */
+        input[type="range"]::-moz-range-track {
+            height: 8px;
+            background: linear-gradient(to right, var(--primary-light) 0%, var(--primary-color) 100%);
+            border-radius: 4px;
+        }
+
+        /* Show min/max values for sliders */
+        .slider-container .slider-limits {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            font-size: 0.75rem;
+            color: var(--text-light);
+        }
+
+        .slider-container .slider-min,
+        .slider-container .slider-max {
+            flex: 0 0 auto;
+        }
+
+        /* Enhance reset buttons */
+        .settings-reset {
+            display: block;
+            background: linear-gradient(to right, var(--primary-light), var(--primary-color));
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 10px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: var(--transition);
+            text-align: center;
+            font-weight: 500;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            width: 100%;
+        }
+
+        .settings-reset:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transform: translateY(-2px);
         }
 
         canvas {
@@ -400,246 +584,631 @@
             box-shadow: var(--shadow-sm);
             background: linear-gradient(to bottom, #ffffff, #f8f9fa);
         }
+        
+        /* Settings Panel Styles */
+        .main-container {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .settings-panel {
+            background: #f5f5f7;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 15px;
+            margin-right: 20px;
+            min-width: 300px;
+            max-width: 350px;
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+            overflow-y: auto;
+            max-height: calc(100vh - 40px);
+        }
+
+        .settings-panel h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #333;
+            text-align: center;
+        }
+
+        .settings-group {
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .settings-group-header {
+            background: #e1e1e6;
+            padding: 10px 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+
+        .settings-group-header::after {
+            content: '▼';
+            font-size: 12px;
+            transition: transform 0.3s;
+        }
+
+        .settings-group-header.active::after {
+            transform: rotate(180deg);
+        }
+
+        .settings-group-header:hover {
+            background: #d1d1d6;
+        }
+
+        .settings-group-content {
+            padding: 0 15px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .settings-item {
+            margin: 15px 0;
+        }
+
+        .settings-item label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .settings-value {
+            font-size: 14px;
+            color: #666;
+            margin-left: 5px;
+        }
+
+        .reset-button {
+            background: #007aff;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background-color 0.3s;
+        }
+
+        .reset-button:hover {
+            background: #0055b3;
+        }
+
+        .reset-all-button {
+            background: linear-gradient(to right, #e74c3c, #c0392b);
+            padding: 12px 10px;
+            font-weight: 600;
+            font-size: 1rem;
+            margin-top: 20px;
+        }
+        
+        .reset-all-button:hover {
+            background: linear-gradient(to right, #c0392b, #e74c3c);
+        }
+        
+        .content-container {
+            flex: 1;
+        }
+        
+        .slider-container {
+            margin: 8px 0;
+        }
+        
+        .slider-container label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .slider-container .slider-row {
+            display: flex;
+            align-items: center;
+        }
+        
+        .slider-container .value {
+            width: 70px;
+            text-align: right;
+            font-size: 0.9rem;
+        }
+        
+        .settings-info {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            font-style: italic;
+            margin-top: 5px;
+        }
+        
+        .settings-reset {
+            display: block;
+            background-color: var(--equation-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            border-radius: var(--border-radius);
+            padding: 5px 10px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: var(--transition);
+        }
+        
+        .settings-reset:hover {
+            background-color: var(--border-color);
+        }
+        
+        @media (max-width: 992px) {
+            .main-container {
+                flex-direction: column;
+            }
+            
+            .settings-panel {
+                flex: none;
+                width: 100%;
+                max-height: none;
+                position: static;
+            }
+        }
+
+        /* Different themes for parameter groups */
+        /* Model parameters */
+        .settings-group:nth-of-type(1) .settings-group-header {
+            background: linear-gradient(to right, #4361ee, #4895ef);
+            color: white;
+        }
+        
+        .settings-group:nth-of-type(1) input[type="range"] {
+            background: linear-gradient(to right, #4361ee 0%, #4895ef 100%);
+        }
+        
+        .settings-group:nth-of-type(1) input[type="range"]::-webkit-slider-thumb {
+            border-color: #4361ee;
+        }
+        
+        .settings-group:nth-of-type(1) .value {
+            color: #4361ee;
+            background: rgba(67, 97, 238, 0.1);
+        }
+        
+        /* Fouling parameters */
+        .settings-group:nth-of-type(2) .settings-group-header {
+            background: linear-gradient(to right, #e74c3c, #f39c12);
+            color: white;
+        }
+        
+        .settings-group:nth-of-type(2) input[type="range"] {
+            background: linear-gradient(to right, #e74c3c 0%, #f39c12 100%);
+        }
+        
+        .settings-group:nth-of-type(2) input[type="range"]::-webkit-slider-thumb {
+            border-color: #e74c3c;
+        }
+        
+        .settings-group:nth-of-type(2) .value {
+            color: #e74c3c;
+            background: rgba(231, 76, 60, 0.1);
+        }
+        
+        /* Heat exchanger parameters */
+        .settings-group:nth-of-type(3) .settings-group-header {
+            background: linear-gradient(to right, #2ecc71, #1abc9c);
+            color: white;
+        }
+        
+        .settings-group:nth-of-type(3) input[type="range"] {
+            background: linear-gradient(to right, #2ecc71 0%, #1abc9c 100%);
+        }
+        
+        .settings-group:nth-of-type(3) input[type="range"]::-webkit-slider-thumb {
+            border-color: #2ecc71;
+        }
+        
+        .settings-group:nth-of-type(3) .value {
+            color: #2ecc71;
+            background: rgba(46, 204, 113, 0.1);
+        }
+        
+        /* Detection parameters */
+        .settings-group:nth-of-type(4) .settings-group-header {
+            background: linear-gradient(to right, #9b59b6, #8e44ad);
+            color: white;
+        }
+        
+        .settings-group:nth-of-type(4) input[type="range"] {
+            background: linear-gradient(to right, #9b59b6 0%, #8e44ad 100%);
+        }
+        
+        .settings-group:nth-of-type(4) input[type="range"]::-webkit-slider-thumb {
+            border-color: #9b59b6;
+        }
+        
+        .settings-group:nth-of-type(4) .value {
+            color: #9b59b6;
+            background: rgba(155, 89, 182, 0.1);
+        }
     </style>
 </head>
 <body>
-    <h1>Fouling Detection in Cross-Flow Heat Exchanger Based on Physical Modeling</h1>
-    
-    <p>This interactive module demonstrates the method described in the paper by O. Gudmundsson, O.P. Palsson, H. Palsson, and S. Lalot for detecting fouling in cross-flow heat exchangers using physical modeling.</p>
+    <div class="page-header">
+        <h1>Cross-Flow Heat Exchanger Fouling Detection Simulator</h1>
+        <p>An interactive tool for simulating and detecting fouling phenomena in cross-flow heat exchangers based on physical modeling and parameter estimation.</p>
+    </div>
     
     <h2>Model Overview</h2>
     <p>The model is based on dividing the heat exchanger into equal sections on both the hot and cold sides. The states of the model are the temperatures in these sections, and the model is written in state space form.</p>
     
-    <p class="note" style="text-align: center; font-weight: 500; color: var(--primary-color); margin-bottom: 20px;">
-        All visualizations are displayed below
-    </p>
-    
-    <div class="graphs-container">
-        <div class="visualization-section">
-            <h4>Heat Exchanger Diagram (4×4 Grid)</h4>
-            <div style="position: relative; height: 198px; width: 100%;">
-                <canvas id="heatExchangerCanvas" width="900" height="198"></canvas>
-            </div>
-        </div>
-        
-        <div class="visualization-section">
-            <h4>Fouling Factor Evolution</h4>
-            <div style="position: relative; height: 148px; width: 100%;">
-                <canvas id="foulingChart"></canvas>
-            </div>
-        </div>
-        
-        <div class="visualization-section">
-            <h4>Parameter Evolution Visualization</h4>
-            <div style="position: relative; height: 248px; width: 100%;">
-                <canvas id="parameterChart"></canvas>
-            </div>
-        </div>
-        
-        <div class="visualization-section">
-            <h4>Fouling Detection Visualization (CuSum)</h4>
-            <div style="position: relative; height: 248px; width: 100%;">
-                <canvas id="detectionChart"></canvas>
-            </div>
-        </div>
-        
-        <div class="controls">
-            <button id="startButton">Start Simulation</button>
-            <button id="resetButton">Reset</button>
-        </div>
-        
-        <div class="slider-container">
-            <label for="foulingRate">Fouling Rate:</label>
-            <input type="range" id="foulingRate" min="0" max="100" value="20">
-            <span id="foulingRateValue">0.0001</span>
-        </div>
-        
-        <div class="slider-container">
-            <label for="noiseLevel">Noise Level:</label>
-            <input type="range" id="noiseLevel" min="0" max="100" value="10">
-            <span id="noiseLevelValue">0.5%</span>
-        </div>
-        
-        <div id="detectionResult">
-            <p>Status: No fouling detected</p>
-            <p>Time to detection: N/A</p>
-        </div>
-    </div>
-    
-    <div class="container">
-        <div class="model-section">
-            <h3>Physical Model</h3>
+    <div class="main-container">
+        <!-- Settings Panel -->
+        <div class="settings-panel">
+            <h3 style="margin-top: 0;">Simulation Settings</h3>
             
-            <details>
-                <summary>Energy balance equation</summary>
-                <div class="content">
-                    <p>The differential energy balance equation for each section is:</p>
-                    <div class="equation">
-                        MC<sub>ij</sub>dT<sub>ij</sub>/dt = ṁ(t)c[T<sub>i-n,j-m</sub>(t) - T<sub>ij</sub>(t)] ± AU<sub>ij</sub>(t)F∆T<sub>ij</sub>(t)
-                    </div>
-                    
-                    <p>Where:</p>
-                    <ul>
-                        <li>i) is the energy change in section ij at time t</li>
-                        <li>ii) is the energy flow in the fluid in section ij</li>
-                        <li>iii) is the energy transferred from or to section ij</li>
-                        <li>n = 1, m = 0 for cold side, n = 0, m = 1 for hot side</li>
-                        <li>Positive sign for cold side, negative for hot side</li>
-                    </ul>
-                </div>
-            </details>
-            
-            <details>
-                <summary>Temperature difference</summary>
-                <div class="content">
-                    <p>The arithmetic mean temperature difference:</p>
-                    <div class="equation">
-                        ∆T<sub>ij</sub>(t) = [T<sub>h,ij-1</sub>(t)+T<sub>h,ij</sub>(t)]/2 - [T<sub>c,i-1,j</sub>(t)+T<sub>c,ij</sub>(t)]/2
-                    </div>
-                </div>
-            </details>
-            
-            <details>
-                <summary>Correction factor</summary>
-                <div class="content">
-                    <p>Correction factor F is calculated using the NTU method:</p>
-                    <div class="equation">
-                        F = ∆T(minimum fluid)/(NTU·∆T<sub>LMTD</sub>)
-                    </div>
-                </div>
-            </details>
-
-            <details>
-                <summary>State space representation</summary>
-                <div class="content">
-                    <p>The state space representation with parameters:</p>
-                    <div class="equation">
-                        d/dt T = A(ṁ, θ, F)T + B(ṁ, θ, F)T<sub>in</sub>
-                    </div>
-                    
-                    <p>For a 4×4 grid model, the state vector and matrices are:</p>
-                    <div class="matrix-container">
-                        <div style="text-align: center; padding: 20px; background-color: #f8f9fa; border: 1px dashed #ccc;">
-                            [Matrix representation for 4×4 grid model with 16 states]
+            <!-- Model Parameters -->
+            <div class="settings-group">
+                <div class="settings-group-header">Model Parameters</div>
+                <div class="settings-group-content">
+                    <div class="slider-container">
+                        <label for="alpha">α (Alpha) - Heat Transfer Parameter:</label>
+                        <div class="slider-row">
+                            <input type="range" id="alpha" min="0.05" max="0.2" step="0.001" value="0.112">
+                            <span id="alphaValue" class="value">0.112</span>
                         </div>
-                    </div>
-                </div>
-            </details>
-        </div>
-        
-        <div class="parameters-section">
-            <h3>Parameter Estimation</h3>
-            
-            <details>
-                <summary>Model parameters</summary>
-                <div class="content">
-                    <p>The model parameters are defined as:</p>
-                    <div class="equation">
-                        α(t) = FA<sub>h</sub>U<sub>ij</sub>(t)/ṁ<sub>h</sub>(t)c<sub>h</sub>
-                    </div>
-                    <div class="equation">
-                        β(t) = FA<sub>c</sub>U<sub>ij</sub>(t)/ṁ<sub>c</sub>(t)c<sub>c</sub>
-                    </div>
-                    <div class="equation">
-                        τ<sub>h</sub>(t) = M<sub>h</sub>/ṁ<sub>h</sub>(t)
-                    </div>
-                    <div class="equation">
-                        τ<sub>c</sub>(t) = M<sub>c</sub>/ṁ<sub>c</sub>(t)
-                    </div>
-                </div>
-            </details>
-            
-            <details>
-                <summary>Heat transfer coefficient</summary>
-                <div class="content">
-                    <p>Heat transfer coefficient is modeled empirically as:</p>
-                    <div class="equation">
-                        h(t) = C′ṁ<sup>γ</sup>(t)
+                        <div class="slider-limits">
+                            <span class="slider-min">0.05</span>
+                            <span class="slider-max">0.2</span>
+                        </div>
+                        <div class="settings-info">Initial value from Table 2: α = 0.112</div>
                     </div>
                     
-                    <p>Overall heat transfer coefficient:</p>
-                    <div class="equation">
-                        U(t) = h<sub>h</sub>(t)h<sub>c</sub>(t)/(h<sub>h</sub>(t)+h<sub>c</sub>(t)) = C′(ṁ<sub>h</sub>(t)ṁ<sub>c</sub>(t))<sup>γ</sup>/(ṁ<sub>h</sub><sup>γ</sup>(t)+ṁ<sub>c</sub><sup>γ</sup>(t))
-                    </div>
-                </div>
-            </details>
-            
-            <details>
-                <summary>Normalized parameters</summary>
-                <div class="content">
-                    <p>Normalized parameters using reference mass flow ṁ<sub>ref</sub>:</p>
-                    <div class="equation">
-                        α(t) = α<sub>*</sub>·ṁ<sub>h,ref</sub>/ṁ<sub>h</sub>(t)·U(t)/U<sub>ref</sub>
-                    </div>
-                    <div class="equation">
-                        β(t) = β<sub>*</sub>·ṁ<sub>c,ref</sub>/ṁ<sub>c</sub>(t)·U(t)/U<sub>ref</sub>
-                    </div>
-                    <div class="equation">
-                        U<sub>ref</sub> = C′(ṁ<sub>h,ref</sub>ṁ<sub>c,ref</sub>)<sup>γ</sup>/(ṁ<sub>h,ref</sub><sup>γ</sup>+ṁ<sub>c,ref</sub><sup>γ</sup>)
-                    </div>
-                </div>
-            </details>
-            
-            <details>
-                <summary>Parameter estimation method</summary>
-                <div class="content">
-                    <p>The parameters are estimated using a least squares method with the help of a Kalman filter to estimate the states:</p>
-                    <div class="equation">
-                        V(θ) = Σ<sub>t=1</sub><sup>N</sup> ξ<sup>T</sup>(t)ξ(t)
+                    <div class="slider-container">
+                        <label for="beta">β (Beta) - Heat Transfer Parameter:</label>
+                        <div class="slider-row">
+                            <input type="range" id="beta" min="0.05" max="0.2" step="0.001" value="0.126">
+                            <span id="betaValue" class="value">0.126</span>
+                        </div>
+                        <div class="slider-limits">
+                            <span class="slider-min">0.05</span>
+                            <span class="slider-max">0.2</span>
+                        </div>
+                        <div class="settings-info">Initial value from Table 2: β = 0.126</div>
                     </div>
                     
-                    <p>Fouling factor directly affects U:</p>
-                    <div class="equation">
-                        U = 1/(1/(A<sub>c</sub>h<sub>c</sub>) + 1/(A<sub>h</sub>h<sub>h</sub>) + R<sub>f</sub>)
+                    <div class="slider-container">
+                        <label for="tau_h">τ<sub>h</sub> (Tau Hot) - Hot Side Time Constant:</label>
+                        <div class="slider-row">
+                            <input type="range" id="tau_h" min="0.1" max="0.5" step="0.01" value="0.25">
+                            <span id="tau_hValue" class="value">0.25</span>
+                        </div>
+                        <div class="slider-limits">
+                            <span class="slider-min">0.1</span>
+                            <span class="slider-max">0.5</span>
+                        </div>
+                        <div class="settings-info">From Table 1: τ<sub>h</sub> = 0.25</div>
                     </div>
+                    
+                    <div class="slider-container">
+                        <label for="tau_c">τ<sub>c</sub> (Tau Cold) - Cold Side Time Constant:</label>
+                        <div class="slider-row">
+                            <input type="range" id="tau_c" min="0.1" max="0.5" step="0.01" value="0.25">
+                            <span id="tau_cValue" class="value">0.25</span>
+                        </div>
+                        <div class="slider-limits">
+                            <span class="slider-min">0.1</span>
+                            <span class="slider-max">0.5</span>
+                        </div>
+                        <div class="settings-info">From Table 1: τ<sub>c</sub> = 0.25</div>
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label for="gamma">γ (Gamma) - Reynolds Number Exponent:</label>
+                        <div class="slider-row">
+                            <input type="range" id="gamma" min="0.6" max="1" step="0.01" value="0.8">
+                            <span id="gammaValue" class="value">0.8</span>
+                        </div>
+                        <div class="slider-limits">
+                            <span class="slider-min">0.6</span>
+                            <span class="slider-max">1.0</span>
+                        </div>
+                        <div class="settings-info">Literature recommends γ = 0.8 for turbulent flow</div>
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label for="F">F - Correction Factor:</label>
+                        <div class="slider-row">
+                            <input type="range" id="F" min="0.8" max="1" step="0.01" value="0.95">
+                            <span id="FValue" class="value">0.95</span>
+                        </div>
+                        <div class="slider-limits">
+                            <span class="slider-min">0.8</span>
+                            <span class="slider-max">1.0</span>
+                        </div>
+                        <div class="settings-info">Estimated from Eq. (6) to be F = 0.95</div>
+                    </div>
+                    
+                    <button class="settings-reset" id="resetModelParams">Reset Model Parameters</button>
                 </div>
-            </details>
+            </div>
+            
+            <!-- Fouling Parameters -->
+            <div class="settings-group">
+                <div class="settings-group-header">Fouling Parameters</div>
+                <div class="settings-group-content">
+                    <div class="slider-container">
+                        <label for="foulingRate">Fouling Rate (×10⁻⁶ m²·°C/W per time unit):</label>
+                        <div class="slider-row">
+                            <input type="range" id="foulingRate" min="0" max="100" value="20">
+                            <span id="foulingRateValue" class="value">0.0001</span>
+                        </div>
+                        <div class="slider-limits">
+                            <span class="slider-min">0</span>
+                            <span class="slider-max">0.0005</span>
+                        </div>
+                        <div class="settings-info">Controls how quickly fouling accumulates over time</div>
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label for="foulingStart">Fouling Start Time (time units):</label>
+                        <div class="slider-row">
+                            <input type="range" id="foulingStart" min="10" max="500" step="10" value="100">
+                            <span id="foulingStartValue" class="value">100</span>
+                        </div>
+                        <div class="slider-limits">
+                            <span class="slider-min">10</span>
+                            <span class="slider-max">500</span>
+                        </div>
+                        <div class="settings-info">Time step when fouling begins to accumulate</div>
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label for="maxFouling">Maximum Fouling Factor (m²·°C/W):</label>
+                        <div class="slider-row">
+                            <input type="range" id="maxFouling" min="0.0001" max="0.001" step="0.0001" value="0.0004">
+                            <span id="maxFoulingValue" class="value">0.0004</span>
+                        </div>
+                        <div class="slider-limits">
+                            <span class="slider-min">0.0001</span>
+                            <span class="slider-max">0.001</span>
+                        </div>
+                        <div class="settings-info">Upper limit for fouling - paper uses max Rf = 0.0004 m²·°C/W</div>
+                    </div>
+                    
+                    <button class="settings-reset" id="resetFoulingParams">Reset Fouling Parameters</button>
+                </div>
+            </div>
+            
+            <!-- Heat Exchanger Parameters -->
+            <div class="settings-group">
+                <div class="settings-group-header">Heat Exchanger Parameters</div>
+                <div class="settings-group-content">
+                    <div class="slider-container">
+                        <label for="U_ref">U<sub>ref</sub> - Reference Heat Transfer Coefficient (kW/m²·°C):</label>
+                        <div class="slider-row">
+                            <input type="range" id="U_ref" min="1" max="10" step="0.1" value="3.62">
+                            <span id="U_refValue" class="value">3.62</span>
+                        </div>
+                        <div class="slider-limits">
+                            <span class="slider-min">1.0</span>
+                            <span class="slider-max">10.0</span>
+                        </div>
+                        <div class="settings-info">Paper uses U = 3.62 kW/m²·°C based on heat transfer calculations</div>
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label for="mh_ref">ṁ<sub>h,ref</sub> - Hot Side Reference Mass Flow (kg/s):</label>
+                        <div class="slider-row">
+                            <input type="range" id="mh_ref" min="0.5" max="2" step="0.1" value="1.0">
+                            <span id="mh_refValue" class="value">1.0</span>
+                        </div>
+                        <div class="slider-limits">
+                            <span class="slider-min">0.5</span>
+                            <span class="slider-max">2.0</span>
+                        </div>
+                        <div class="settings-info">Reference flow rate for normalization calculations</div>
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label for="mc_ref">ṁ<sub>c,ref</sub> - Cold Side Reference Mass Flow (kg/s):</label>
+                        <div class="slider-row">
+                            <input type="range" id="mc_ref" min="0.5" max="2" step="0.1" value="1.0">
+                            <span id="mc_refValue" class="value">1.0</span>
+                        </div>
+                        <div class="slider-limits">
+                            <span class="slider-min">0.5</span>
+                            <span class="slider-max">2.0</span>
+                        </div>
+                        <div class="settings-info">Reference flow rate for normalization calculations</div>
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label for="Ah">A<sub>h</sub> - Hot Side Heat Transfer Area (m²):</label>
+                        <div class="slider-row">
+                            <input type="range" id="Ah" min="0.1" max="1" step="0.05" value="0.5">
+                            <span id="AhValue" class="value">0.5</span>
+                        </div>
+                        <div class="slider-limits">
+                            <span class="slider-min">0.1</span>
+                            <span class="slider-max">1.0</span>
+                        </div>
+                        <div class="settings-info">Paper uses 0.5 m² based on heat exchanger dimensions</div>
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label for="Ac">A<sub>c</sub> - Cold Side Heat Transfer Area (m²):</label>
+                        <div class="slider-row">
+                            <input type="range" id="Ac" min="0.1" max="1" step="0.05" value="0.5">
+                            <span id="AcValue" class="value">0.5</span>
+                        </div>
+                        <div class="slider-limits">
+                            <span class="slider-min">0.1</span>
+                            <span class="slider-max">1.0</span>
+                        </div>
+                        <div class="settings-info">Paper uses 0.5 m² based on heat exchanger dimensions</div>
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label for="ch">c<sub>h</sub> - Hot Side Specific Heat (J/kg·°C):</label>
+                        <div class="slider-row">
+                            <input type="range" id="ch" min="3000" max="5000" step="100" value="4200">
+                            <span id="chValue" class="value">4200</span>
+                        </div>
+                        <div class="slider-limits">
+                            <span class="slider-min">3000</span>
+                            <span class="slider-max">5000</span>
+                        </div>
+                        <div class="settings-info">Water has specific heat capacity of 4200 J/kg·°C</div>
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label for="cc">c<sub>c</sub> - Cold Side Specific Heat (J/kg·°C):</label>
+                        <div class="slider-row">
+                            <input type="range" id="cc" min="3000" max="5000" step="100" value="4200">
+                            <span id="ccValue" class="value">4200</span>
+                        </div>
+                        <div class="slider-limits">
+                            <span class="slider-min">3000</span>
+                            <span class="slider-max">5000</span>
+                        </div>
+                        <div class="settings-info">Water has specific heat capacity of 4200 J/kg·°C</div>
+                    </div>
+                    
+                    <button class="settings-reset" id="resetHeatExchangerParams">Reset Heat Exchanger Parameters</button>
+                </div>
+            </div>
+            
+            <!-- Detection Parameters -->
+            <div class="settings-group">
+                <div class="settings-group-header">Detection Parameters</div>
+                <div class="settings-group-content">
+                    <div class="slider-container">
+                        <label for="noiseLevel">Noise Level (% of measurement):</label>
+                        <div class="slider-row">
+                            <input type="range" id="noiseLevel" min="0" max="100" value="10">
+                            <span id="noiseLevelValue" class="value">0.5%</span>
+                        </div>
+                        <div class="slider-limits">
+                            <span class="slider-min">0%</span>
+                            <span class="slider-max">2%</span>
+                        </div>
+                        <div class="settings-info">Controls random variation in parameter measurements</div>
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label for="cusum_K">CuSum K Value (Reference - 2σ<sub>θ,clean</sub>):</label>
+                        <div class="slider-row">
+                            <input type="range" id="cusum_K" min="0.0001" max="0.01" step="0.0001" value="0.001">
+                            <span id="cusum_KValue" class="value">0.001</span>
+                        </div>
+                        <div class="slider-limits">
+                            <span class="slider-min">0.0001</span>
+                            <span class="slider-max">0.01</span>
+                        </div>
+                        <div class="settings-info">Reference value for CuSum algorithm - typically set to 2σ</div>
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label for="cusum_H">CuSum H Value (Threshold - 3σ<sub>θ,clean</sub>):</label>
+                        <div class="slider-row">
+                            <input type="range" id="cusum_H" min="0.001" max="0.05" step="0.001" value="0.015">
+                            <span id="cusum_HValue" class="value">0.015</span>
+                        </div>
+                        <div class="slider-limits">
+                            <span class="slider-min">0.001</span>
+                            <span class="slider-max">0.05</span>
+                        </div>
+                        <div class="settings-info">Detection threshold for CuSum algorithm - typically set to 3σ</div>
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label for="windowSize">Window Size for Moving Average (samples):</label>
+                        <div class="slider-row">
+                            <input type="range" id="windowSize" min="10" max="100" step="5" value="40">
+                            <span id="windowSizeValue" class="value">40</span>
+                        </div>
+                        <div class="slider-limits">
+                            <span class="slider-min">10</span>
+                            <span class="slider-max">100</span>
+                        </div>
+                        <div class="settings-info">Number of samples used for calculating moving averages</div>
+                    </div>
+                    
+                    <button class="settings-reset" id="resetDetectionParams">Reset Detection Parameters</button>
+                </div>
+            </div>
+            
+            <button id="resetAllParams" class="reset-all-button">Reset All Parameters</button>
         </div>
         
-        <div class="detection-section">
-            <h3>Fouling Detection</h3>
-            <p>When fouling accumulates, the heat transfer coefficient U decreases. Since α and β are proportional to U, they also decrease.</p>
-            
-            <details>
-                <summary>Cumulative Sum (CuSum) Method</summary>
-                <div class="content">
-                    <p>The Cumulative Sum (CuSum) control chart is used to detect small shifts in the mean of these parameters:</p>
-                    <div class="equation">
-                        Cus(i) = max{0, (μ<sub>0</sub> - x̄<sub>i</sub>) - K + Cus(i-1)}
+        <!-- Content Container -->
+        <div class="content-container">
+            <div class="graphs-container">
+                <div class="visualization-section">
+                    <h4>Heat Exchanger Diagram (4×4 Grid)</h4>
+                    <div style="position: relative; height: 198px; width: 100%;">
+                        <canvas id="heatExchangerCanvas" width="900" height="198"></canvas>
                     </div>
-                    <p>where:</p>
-                    <ul>
-                        <li>μ<sub>0</sub> is the reference value (no fouling)</li>
-                        <li>x̄<sub>i</sub> is the moving average over 40 samples</li>
-                        <li>K is the reference value (set to 2σ<sub>θ,clean</sub>)</li>
-                        <li>If Cus(i) > H*, then fouling is detected (H* = 3σ<sub>θ,clean</sub>)</li>
-                    </ul>
                 </div>
-            </details>
+                
+                <div class="visualization-section">
+                    <h4>Fouling Factor Evolution</h4>
+                    <div style="position: relative; height: 148px; width: 100%;">
+                        <canvas id="foulingChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="visualization-section">
+                    <h4>Parameter Evolution Visualization</h4>
+                    <div style="position: relative; height: 248px; width: 100%;">
+                        <canvas id="parameterChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="visualization-section">
+                    <h4>Fouling Detection Visualization (CuSum)</h4>
+                    <div style="position: relative; height: 248px; width: 100%;">
+                        <canvas id="detectionChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="controls">
+                    <button id="startButton">Start Simulation</button>
+                    <button id="resetButton">Reset</button>
+                </div>
+                
+                <div id="detectionResult">
+                    <p>Status: No fouling detected</p>
+                    <p>Time to detection: N/A</p>
+                </div>
+            </div>
             
-            <details>
-                <summary>Detection Thresholds</summary>
-                <div class="content">
-                    <h4>Detection Threshold:</h4>
-                    <p>Typical fouling factor range in water heat exchangers: [0.0001, 0.0007] m²·°C/W</p>
-                    <p>Detection usually happens at Rf ≈ 0.0001 (lower limit of design factor)</p>
-                </div>
-            </details>
+            <h2>Implementation Details</h2>
+            <p>The simulation implements the model from the paper with 4 sections on each side of the heat exchanger (4x4 grid). The parameters are estimated from simulated data and monitored for fouling detection using the CuSum method as specified in the paper.</p>
+            
+            <ul>
+                <li>Heat exchanger dimensions: 0.5m × 0.5m × 0.002m</li>
+                <li>Water on both sides (c<sub>h</sub> = c<sub>c</sub> = 4200 J/kg·°C, ρ = 998 kg/m³)</li>
+                <li>Reference mass flow: ṁ<sub>h,ref</sub> = ṁ<sub>c,ref</sub> = 1 kg/s</li>
+                <li>Temperature ranges: Hot [54.7°C, 99.4°C], Cold [13.3°C, 27.6°C]</li>
+                <li>Maximum fouling factor: 0.0004 m²·°C/W</li>
+            </ul>
         </div>
     </div>
     
-    <h2>Implementation Details</h2>
-    <p>The simulation implements the model from the paper with 4 sections on each side of the heat exchanger (4x4 grid). The parameters are estimated from simulated data and monitored for fouling detection using the CuSum method as specified in the paper.</p>
-    
-    <ul>
-        <li>Heat exchanger dimensions: 0.5m × 0.5m × 0.002m</li>
-        <li>Water on both sides (c<sub>h</sub> = c<sub>c</sub> = 4200 J/kg·°C, ρ = 998 kg/m³)</li>
-        <li>Reference mass flow: ṁ<sub>h,ref</sub> = ṁ<sub>c,ref</sub> = 1 kg/s</li>
-        <li>Temperature ranges: Hot [54.7°C, 99.4°C], Cold [13.3°C, 27.6°C]</li>
-        <li>Maximum fouling factor: 0.0004 m²·°C/W</li>
-    </ul>
+    <div class="page-footer">
+        <div class="copyright">Developed by Ed Cherednik, 2025</div>
+        <div class="disclaimer">This simulator is an educational implementation based on the research paper referenced below. It is provided for academic purposes only and should not be used for commercial applications without proper verification.</div>
+        <div class="paper-reference">Based on: O. Gudmundsson, O.P. Palsson, H. Palsson, and S. Lalot, "Fouling detection in a cross-flow heat exchanger based on physical modeling," Heat Transfer Engineering, vol. 30, no. 8, pp. 682-699, 2009.</div>
+    </div>
     
     <script>
+        // Initialize global parameters
+        window.windowSize = 40; // Moving average window size
+        
         // Model parameters based on the paper (Tables 1 & 2, page 452)
         const params = {
             // Parameter values from Table 1 & 2:
@@ -906,7 +1475,7 @@
             // "When analyzing the parameters the average value of the parameters is calculated 
             // over a window of a specific length...the CuSum chart is used to monitor the average
             // value of the parameters for a shift from their reference value."
-            const windowSize = 40;  // As specified in the paper
+            const windowSize = window.windowSize || 40;  // Use global windowSize with fallback to 40
             let alphaAvg = 0;
             let betaAvg = 0;
             
@@ -1519,20 +2088,251 @@
             initSimulation();
         });
         
+        // Function to show animation when a value changes
+        function showValueChangeAnimation(elementId) {
+            const valueElement = document.getElementById(elementId);
+            valueElement.classList.remove('changed');
+            // Trigger reflow
+            void valueElement.offsetWidth;
+            valueElement.classList.add('changed');
+        }
+        
+        // Model parameter sliders
+        document.getElementById('alpha').addEventListener('input', function() {
+            params.alpha = parseFloat(this.value);
+            document.getElementById('alphaValue').textContent = params.alpha.toFixed(3);
+            showValueChangeAnimation('alphaValue');
+        });
+        
+        document.getElementById('beta').addEventListener('input', function() {
+            params.beta = parseFloat(this.value);
+            document.getElementById('betaValue').textContent = params.beta.toFixed(3);
+            showValueChangeAnimation('betaValue');
+        });
+        
+        document.getElementById('tau_h').addEventListener('input', function() {
+            params.tau_h = parseFloat(this.value);
+            document.getElementById('tau_hValue').textContent = params.tau_h.toFixed(2);
+            showValueChangeAnimation('tau_hValue');
+        });
+        
+        document.getElementById('tau_c').addEventListener('input', function() {
+            params.tau_c = parseFloat(this.value);
+            document.getElementById('tau_cValue').textContent = params.tau_c.toFixed(2);
+            showValueChangeAnimation('tau_cValue');
+        });
+        
+        document.getElementById('gamma').addEventListener('input', function() {
+            params.gamma = parseFloat(this.value);
+            document.getElementById('gammaValue').textContent = params.gamma.toFixed(2);
+            showValueChangeAnimation('gammaValue');
+        });
+        
+        document.getElementById('F').addEventListener('input', function() {
+            params.F = parseFloat(this.value);
+            document.getElementById('FValue').textContent = params.F.toFixed(2);
+            showValueChangeAnimation('FValue');
+        });
+        
+        // Fouling parameter sliders
         document.getElementById('foulingRate').addEventListener('input', function() {
             const value = this.value / 100 * 0.0005;
             params.foulingRate = value;
-            document.getElementById('foulingRateValue').textContent = value.toFixed(5);
+            document.getElementById('foulingRateValue').textContent = (value * 1000000).toFixed(2) + " × 10⁻⁶";
+            showValueChangeAnimation('foulingRateValue');
         });
         
+        document.getElementById('foulingStart').addEventListener('input', function() {
+            params.foulingStart = parseInt(this.value);
+            document.getElementById('foulingStartValue').textContent = params.foulingStart;
+            showValueChangeAnimation('foulingStartValue');
+        });
+        
+        document.getElementById('maxFouling').addEventListener('input', function() {
+            params.maxFouling = parseFloat(this.value);
+            document.getElementById('maxFoulingValue').textContent = params.maxFouling.toFixed(4);
+            showValueChangeAnimation('maxFoulingValue');
+        });
+        
+        // Heat exchanger parameter sliders
+        document.getElementById('U_ref').addEventListener('input', function() {
+            params.U_ref = parseFloat(this.value);
+            document.getElementById('U_refValue').textContent = params.U_ref.toFixed(2);
+            showValueChangeAnimation('U_refValue');
+        });
+        
+        document.getElementById('mh_ref').addEventListener('input', function() {
+            params.mh_ref = parseFloat(this.value);
+            document.getElementById('mh_refValue').textContent = params.mh_ref.toFixed(2);
+            showValueChangeAnimation('mh_refValue');
+        });
+        
+        document.getElementById('mc_ref').addEventListener('input', function() {
+            params.mc_ref = parseFloat(this.value);
+            document.getElementById('mc_refValue').textContent = params.mc_ref.toFixed(2);
+            showValueChangeAnimation('mc_refValue');
+        });
+        
+        document.getElementById('Ah').addEventListener('input', function() {
+            params.Ah = parseFloat(this.value);
+            document.getElementById('AhValue').textContent = params.Ah.toFixed(2);
+            showValueChangeAnimation('AhValue');
+        });
+        
+        document.getElementById('Ac').addEventListener('input', function() {
+            params.Ac = parseFloat(this.value);
+            document.getElementById('AcValue').textContent = params.Ac.toFixed(2);
+            showValueChangeAnimation('AcValue');
+        });
+        
+        document.getElementById('ch').addEventListener('input', function() {
+            params.ch = parseFloat(this.value);
+            document.getElementById('chValue').textContent = params.ch.toFixed(0);
+            showValueChangeAnimation('chValue');
+        });
+        
+        document.getElementById('cc').addEventListener('input', function() {
+            params.cc = parseFloat(this.value);
+            document.getElementById('ccValue').textContent = params.cc.toFixed(0);
+            showValueChangeAnimation('ccValue');
+        });
+        
+        // Detection parameter sliders
         document.getElementById('noiseLevel').addEventListener('input', function() {
             const value = this.value / 100 * 0.02;
             params.noiseLevel = value;
-            document.getElementById('noiseLevelValue').textContent = (value * 100).toFixed(1) + '%';
+            document.getElementById('noiseLevelValue').textContent = (value * 100).toFixed(2) + '%';
+            showValueChangeAnimation('noiseLevelValue');
+        });
+        
+        document.getElementById('cusum_K').addEventListener('input', function() {
+            params.cusum_K = parseFloat(this.value);
+            document.getElementById('cusum_KValue').textContent = params.cusum_K.toFixed(4);
+            showValueChangeAnimation('cusum_KValue');
+        });
+        
+        document.getElementById('cusum_H').addEventListener('input', function() {
+            params.cusum_H = parseFloat(this.value);
+            document.getElementById('cusum_HValue').textContent = params.cusum_H.toFixed(4);
+            showValueChangeAnimation('cusum_HValue');
+        });
+        
+        document.getElementById('windowSize').addEventListener('input', function() {
+            window.windowSize = parseInt(this.value);
+            document.getElementById('windowSizeValue').textContent = window.windowSize;
+            showValueChangeAnimation('windowSizeValue');
+        });
+        
+        // Reset button functionality
+        document.getElementById('resetModelParams').addEventListener('click', function() {
+            // Reset model parameters
+            params.alpha = defaultParams.alpha;
+            params.beta = defaultParams.beta;
+            params.tau_h = defaultParams.tau_h;
+            params.tau_c = defaultParams.tau_c;
+            params.gamma = defaultParams.gamma;
+            params.F = defaultParams.F;
+            
+            // Update sliders and displayed values
+            document.getElementById('alpha').value = params.alpha;
+            document.getElementById('alphaValue').textContent = params.alpha.toFixed(2);
+            
+            document.getElementById('beta').value = params.beta;
+            document.getElementById('betaValue').textContent = params.beta.toFixed(2);
+            
+            document.getElementById('tau_h').value = params.tau_h;
+            document.getElementById('tau_hValue').textContent = params.tau_h.toFixed(1);
+            
+            document.getElementById('tau_c').value = params.tau_c;
+            document.getElementById('U_ref').dispatchEvent(new Event('input'));
+            document.getElementById('mh_ref').dispatchEvent(new Event('input'));
+            document.getElementById('mc_ref').dispatchEvent(new Event('input'));
+            document.getElementById('Ah').dispatchEvent(new Event('input'));
+            document.getElementById('Ac').dispatchEvent(new Event('input'));
+            document.getElementById('ch').dispatchEvent(new Event('input'));
+            document.getElementById('cc').dispatchEvent(new Event('input'));
+        });
+        
+        document.getElementById('resetDetectionParams').addEventListener('click', function() {
+            document.getElementById('noiseLevel').value = 10;
+            document.getElementById('cusum_K').value = 0.001;
+            document.getElementById('cusum_H').value = 0.015;
+            document.getElementById('windowSize').value = 40;
+            
+            document.getElementById('noiseLevel').dispatchEvent(new Event('input'));
+            document.getElementById('cusum_K').dispatchEvent(new Event('input'));
+            document.getElementById('cusum_H').dispatchEvent(new Event('input'));
+            document.getElementById('windowSize').dispatchEvent(new Event('input'));
+        });
+        
+        document.getElementById('resetAllParams').addEventListener('click', function() {
+            document.getElementById('resetModelParams').click();
+            document.getElementById('resetFoulingParams').click();
+            document.getElementById('resetHeatExchangerParams').click();
+            document.getElementById('resetDetectionParams').click();
+        });
+        
+        // Make settings panel sections collapsible
+        document.querySelectorAll('.settings-group-header').forEach(header => {
+            header.addEventListener('click', function() {
+                const content = this.nextElementSibling;
+                if (content.style.maxHeight) {
+                    content.style.maxHeight = null;
+                    this.classList.remove('active');
+                } else {
+                    content.style.maxHeight = content.scrollHeight + "px";
+                    this.classList.add('active');
+                }
+            });
+            
+            // Initially expand all sections
+            header.click();
         });
         
         // Initialize on load
-        window.addEventListener('load', initSimulation);
+        window.addEventListener('load', function() {
+            // Populate all slider values on load
+            document.querySelectorAll('input[type="range"]').forEach(slider => {
+                slider.dispatchEvent(new Event('input'));
+            });
+            
+            // Initialize the simulation
+            initSimulation();
+        });
+        
+        // Store default parameter values for reset functionality
+        const defaultParams = {
+            // Model Parameters
+            alpha: 1.0,
+            beta: 1.0,
+            tau_h: 10.0,
+            tau_c: 10.0,
+            gamma: 10.0,
+            F: 0.9,
+            
+            // Fouling Parameters
+            foulingRate: 5e-6,
+            foulingStart: 600,
+            maxFouling: 0.0006,
+            
+            // Heat Exchanger Parameters
+            U_ref: 500.0,
+            mh_ref: 1.0,
+            mc_ref: 1.0,
+            Ah: 10.0,
+            Ac: 10.0,
+            ch: 4200.0,
+            cc: 4200.0,
+            
+            // Detection Parameters
+            noiseLevel: 0.005,
+            cusum_K: 0.0001,
+            cusum_H: 0.001
+        };
+        
+        const defaultWindowSize = 40;
+        
+        // Model parameter sliders
     </script>
 </body>
 </html>
