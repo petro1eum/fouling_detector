@@ -4,100 +4,401 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cross-Flow Heat Exchanger Fouling Detection</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@2.2.1/dist/chartjs-plugin-annotation.min.js"></script>
     <style>
+        :root {
+            --primary-color: #4361ee;
+            --primary-light: #4895ef;
+            --primary-dark: #3f37c9;
+            --success-color: #4CC9F0;
+            --warning-color: #F72585;
+            --text-color: #2b2d42;
+            --text-light: #6c757d;
+            --background-color: #f8f9fa;
+            --card-bg: #ffffff;
+            --border-color: #e9ecef;
+            --equation-bg: #f1f3f5;
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+            --border-radius: 10px;
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             line-height: 1.6;
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
-            color: #333;
+            padding: 30px 20px;
+            color: var(--text-color);
+            background-color: var(--background-color);
+            font-size: 15px;
         }
-        h1, h2, h3 {
-            color: #2c3e50;
+
+        h1, h2, h3, h4 {
+            color: var(--text-color);
+            font-weight: 600;
+            line-height: 1.3;
+            margin-bottom: 0.8em;
         }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            text-align: center;
+            margin: 1.5rem 0;
+            background: linear-gradient(90deg, var(--primary-dark), var(--primary-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        h2 {
+            font-size: 1.6rem;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        h3 {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        h4 {
+            font-size: 1.1rem;
+            margin-top: 1.5rem;
+        }
+
+        p {
+            margin-bottom: 1rem;
+            color: var(--text-light);
+        }
+
         .container {
             display: flex;
             flex-wrap: wrap;
-            gap: 20px;
+            gap: 25px;
             justify-content: space-between;
+            margin-top: 25px;
         }
+
         .model-section, .parameters-section, .detection-section {
             flex: 1;
             min-width: 300px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            padding: 15px;
-            background-color: #f9f9f9;
+            border-radius: var(--border-radius);
+            padding: 25px;
+            background-color: var(--card-bg);
+            box-shadow: var(--shadow-md);
+            transition: var(--transition);
+            border: 1px solid var(--border-color);
         }
+
+        .model-section:hover, .parameters-section:hover, .detection-section:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
         .equation {
-            background-color: #f5f5f5;
-            padding: 10px;
-            border-radius: 5px;
-            margin: 10px 0;
+            background-color: var(--equation-bg);
+            padding: 15px;
+            border-radius: var(--border-radius);
+            margin: 15px 0;
             overflow-x: auto;
             font-family: 'Times New Roman', Times, serif;
             text-align: center;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
         }
-        .parameter-plot {
+
+        .parameter-plot, .fouling-plot {
             width: 100%;
             height: 250px;
-            margin: 15px 0;
-            background-color: white;
-            border: 1px solid #ddd;
+            margin: 20px 0;
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
         }
+
+        .fouling-plot {
+            height: 150px;
+        }
+
         .controls {
             display: flex;
-            gap: 10px;
-            margin: 15px 0;
+            gap: 15px;
+            margin: 20px 0;
+            justify-content: center;
         }
+
         button {
-            padding: 8px 15px;
-            background-color: #3498db;
+            padding: 10px 20px;
+            background-color: var(--primary-color);
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 30px;
             cursor: pointer;
+            font-weight: 500;
+            font-size: 1rem;
+            transition: var(--transition);
+            box-shadow: var(--shadow-sm);
+            min-width: 120px;
         }
+
         button:hover {
-            background-color: #2980b9;
+            background-color: var(--primary-dark);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transform: translateY(-2px);
         }
+
+        #startButton {
+            background-color: var(--success-color);
+        }
+
+        #startButton:hover {
+            background-color: #3DB5D8;
+        }
+
+        #resetButton {
+            background-color: var(--text-light);
+        }
+
+        #resetButton:hover {
+            background-color: #5a6268;
+        }
+
         .heat-exchanger-diagram {
             width: 100%;
             height: 200px;
-            margin: 15px 0;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            background-color: white;
+            margin: 20px 0;
+            border-radius: var(--border-radius);
+            background-color: var(--card-bg);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
         }
+
         .slider-container {
-            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+            background-color: var(--equation-bg);
+            padding: 12px 15px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-sm);
         }
+
         .slider-container label {
-            display: inline-block;
-            width: 150px;
+            flex: 0 0 120px;
+            font-weight: 500;
+            color: var(--text-color);
         }
+
+        input[type="range"] {
+            flex: 1;
+            height: 5px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: #d1d5db;
+            border-radius: 5px;
+            outline: none;
+            margin: 0 15px;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            background: var(--primary-dark);
+            transform: scale(1.2);
+        }
+
+        .slider-container span {
+            flex: 0 0 60px;
+            font-weight: 500;
+            text-align: right;
+            color: var(--primary-color);
+        }
+
         canvas {
-            background-color: white;
+            background-color: var(--card-bg);
+            border-radius: calc(var(--border-radius) - 1px);
         }
+
         .tab {
             margin-left: 20px;
         }
+
         .code-explanation {
             font-size: 0.9rem;
-            color: #666;
+            color: var(--text-light);
+            font-style: italic;
         }
-        .fouling-plot {
-            width: 100%;
-            height: 150px;
-            margin: 15px 0;
-            background-color: white;
-            border: 1px solid #ddd;
-        }
+
         .matrix-container {
             max-width: 100%;
             overflow-x: auto;
             margin: 15px 0;
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            padding: 10px;
+        }
+
+        #detectionResult {
+            background-color: var(--equation-bg);
+            padding: 15px;
+            border-radius: var(--border-radius);
+            margin-top: 20px;
+            border-left: 4px solid var(--primary-color);
+            transition: var(--transition);
+        }
+
+        #detectionResult p {
+            margin-bottom: 10px;
+            color: var(--text-color);
+        }
+
+        #detectionResult p:last-child {
+            margin-bottom: 0;
+        }
+
+        #detectionResult strong {
+            color: var(--warning-color);
+            font-weight: 600;
+        }
+
+        ul {
+            margin-left: 20px;
+            margin-bottom: 15px;
+            color: var(--text-light);
+        }
+
+        li {
+            margin-bottom: 5px;
+        }
+
+        /* For smaller screens */
+        @media (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+            
+            .container {
+                flex-direction: column;
+            }
+            
+            .model-section, .parameters-section, .detection-section {
+                width: 100%;
+                margin-bottom: 20px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            h2 {
+                font-size: 1.4rem;
+            }
+            
+            h3 {
+                font-size: 1.2rem;
+            }
+        }
+
+        /* Collapsible sections for formulas */
+        details {
+            background-color: var(--card-bg);
+            border-radius: var(--border-radius);
+            margin-bottom: 1rem;
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+        }
+
+        summary {
+            padding: 12px 15px;
+            cursor: pointer;
+            font-weight: 500;
+            background-color: var(--equation-bg);
+            color: var(--primary-color);
+            border-bottom: 1px solid var(--border-color);
+            transition: var(--transition);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        summary:hover {
+            background-color: rgba(67, 97, 238, 0.1);
+        }
+
+        summary::after {
+            content: "⊕";
+            font-size: 1.2rem;
+        }
+
+        details[open] summary::after {
+            content: "⊖";
+        }
+
+        details .content {
+            padding: 15px;
+        }
+
+        /* Improved canvas container for graphs */
+        .graphs-container {
+            margin: 30px 0;
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-md);
+        }
+
+        .visualization-section {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .visualization-section:last-child {
+            border-bottom: none;
+        }
+
+        .visualization-section h4 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        /* Better canvas appearance */
+        canvas {
+            width: 100%;
+            height: auto;
+            box-shadow: var(--shadow-sm);
+            background: linear-gradient(to bottom, #ffffff, #f8f9fa);
         }
     </style>
 </head>
@@ -109,150 +410,221 @@
     <h2>Model Overview</h2>
     <p>The model is based on dividing the heat exchanger into equal sections on both the hot and cold sides. The states of the model are the temperatures in these sections, and the model is written in state space form.</p>
     
+    <p class="note" style="text-align: center; font-weight: 500; color: var(--primary-color); margin-bottom: 20px;">
+        All visualizations are displayed below
+    </p>
+    
+    <div class="graphs-container">
+        <div class="visualization-section">
+            <h4>Heat Exchanger Diagram (4×4 Grid)</h4>
+            <div style="position: relative; height: 198px; width: 100%;">
+                <canvas id="heatExchangerCanvas" width="900" height="198"></canvas>
+            </div>
+        </div>
+        
+        <div class="visualization-section">
+            <h4>Fouling Factor Evolution</h4>
+            <div style="position: relative; height: 148px; width: 100%;">
+                <canvas id="foulingChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="visualization-section">
+            <h4>Parameter Evolution Visualization</h4>
+            <div style="position: relative; height: 248px; width: 100%;">
+                <canvas id="parameterChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="visualization-section">
+            <h4>Fouling Detection Visualization (CuSum)</h4>
+            <div style="position: relative; height: 248px; width: 100%;">
+                <canvas id="detectionChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button id="startButton">Start Simulation</button>
+            <button id="resetButton">Reset</button>
+        </div>
+        
+        <div class="slider-container">
+            <label for="foulingRate">Fouling Rate:</label>
+            <input type="range" id="foulingRate" min="0" max="100" value="20">
+            <span id="foulingRateValue">0.0001</span>
+        </div>
+        
+        <div class="slider-container">
+            <label for="noiseLevel">Noise Level:</label>
+            <input type="range" id="noiseLevel" min="0" max="100" value="10">
+            <span id="noiseLevelValue">0.5%</span>
+        </div>
+        
+        <div id="detectionResult">
+            <p>Status: No fouling detected</p>
+            <p>Time to detection: N/A</p>
+        </div>
+    </div>
+    
     <div class="container">
         <div class="model-section">
             <h3>Physical Model</h3>
-            <p>The differential energy balance equation for each section is:</p>
-            <div class="equation">
-                MC<sub>ij</sub>dT<sub>ij</sub>/dt = ṁ(t)c[T<sub>i-n,j-m</sub>(t) - T<sub>ij</sub>(t)] ± AU<sub>ij</sub>(t)F∆T<sub>ij</sub>(t)
-            </div>
             
-            <p>Where:</p>
-            <ul>
-                <li>i) is the energy change in section ij at time t</li>
-                <li>ii) is the energy flow in the fluid in section ij</li>
-                <li>iii) is the energy transferred from or to section ij</li>
-                <li>n = 1, m = 0 for cold side, n = 0, m = 1 for hot side</li>
-                <li>Positive sign for cold side, negative for hot side</li>
-            </ul>
+            <details>
+                <summary>Energy balance equation</summary>
+                <div class="content">
+                    <p>The differential energy balance equation for each section is:</p>
+                    <div class="equation">
+                        MC<sub>ij</sub>dT<sub>ij</sub>/dt = ṁ(t)c[T<sub>i-n,j-m</sub>(t) - T<sub>ij</sub>(t)] ± AU<sub>ij</sub>(t)F∆T<sub>ij</sub>(t)
+                    </div>
+                    
+                    <p>Where:</p>
+                    <ul>
+                        <li>i) is the energy change in section ij at time t</li>
+                        <li>ii) is the energy flow in the fluid in section ij</li>
+                        <li>iii) is the energy transferred from or to section ij</li>
+                        <li>n = 1, m = 0 for cold side, n = 0, m = 1 for hot side</li>
+                        <li>Positive sign for cold side, negative for hot side</li>
+                    </ul>
+                </div>
+            </details>
             
-            <p>The arithmetic mean temperature difference:</p>
-            <div class="equation">
-                ∆T<sub>ij</sub>(t) = [T<sub>h,ij-1</sub>(t)+T<sub>h,ij</sub>(t)]/2 - [T<sub>c,i-1,j</sub>(t)+T<sub>c,ij</sub>(t)]/2
-            </div>
+            <details>
+                <summary>Temperature difference</summary>
+                <div class="content">
+                    <p>The arithmetic mean temperature difference:</p>
+                    <div class="equation">
+                        ∆T<sub>ij</sub>(t) = [T<sub>h,ij-1</sub>(t)+T<sub>h,ij</sub>(t)]/2 - [T<sub>c,i-1,j</sub>(t)+T<sub>c,ij</sub>(t)]/2
+                    </div>
+                </div>
+            </details>
             
-            <p>Correction factor F is calculated using the NTU method:</p>
-            <div class="equation">
-                F = ∆T(minimum fluid)/(NTU·∆T<sub>LMTD</sub>)
-            </div>
+            <details>
+                <summary>Correction factor</summary>
+                <div class="content">
+                    <p>Correction factor F is calculated using the NTU method:</p>
+                    <div class="equation">
+                        F = ∆T(minimum fluid)/(NTU·∆T<sub>LMTD</sub>)
+                    </div>
+                </div>
+            </details>
 
-            <p>The state space representation with parameters:</p>
-            <div class="equation">
-                d/dt T = A(ṁ, θ, F)T + B(ṁ, θ, F)T<sub>in</sub>
-            </div>
-            
-            <p>For a 4×4 grid model, the state vector and matrices are:</p>
-            <div class="matrix-container">
-                <img src="/api/placeholder/650/200" alt="State space matrix representation (16)">
-            </div>
-            
-            <div class="heat-exchanger-diagram">
-                <canvas id="heatExchangerCanvas" width="500" height="198"></canvas>
-            </div>
+            <details>
+                <summary>State space representation</summary>
+                <div class="content">
+                    <p>The state space representation with parameters:</p>
+                    <div class="equation">
+                        d/dt T = A(ṁ, θ, F)T + B(ṁ, θ, F)T<sub>in</sub>
+                    </div>
+                    
+                    <p>For a 4×4 grid model, the state vector and matrices are:</p>
+                    <div class="matrix-container">
+                        <div style="text-align: center; padding: 20px; background-color: #f8f9fa; border: 1px dashed #ccc;">
+                            [Matrix representation for 4×4 grid model with 16 states]
+                        </div>
+                    </div>
+                </div>
+            </details>
         </div>
         
         <div class="parameters-section">
             <h3>Parameter Estimation</h3>
-            <p>The model parameters are defined as:</p>
-            <div class="equation">
-                α(t) = FA<sub>h</sub>U<sub>ij</sub>(t)/ṁ<sub>h</sub>(t)c<sub>h</sub>
-            </div>
-            <div class="equation">
-                β(t) = FA<sub>c</sub>U<sub>ij</sub>(t)/ṁ<sub>c</sub>(t)c<sub>c</sub>
-            </div>
-            <div class="equation">
-                τ<sub>h</sub>(t) = M<sub>h</sub>/ṁ<sub>h</sub>(t)
-            </div>
-            <div class="equation">
-                τ<sub>c</sub>(t) = M<sub>c</sub>/ṁ<sub>c</sub>(t)
-            </div>
             
-            <p>Heat transfer coefficient is modeled empirically as:</p>
-            <div class="equation">
-                h(t) = C′ṁ<sup>γ</sup>(t)
-            </div>
+            <details>
+                <summary>Model parameters</summary>
+                <div class="content">
+                    <p>The model parameters are defined as:</p>
+                    <div class="equation">
+                        α(t) = FA<sub>h</sub>U<sub>ij</sub>(t)/ṁ<sub>h</sub>(t)c<sub>h</sub>
+                    </div>
+                    <div class="equation">
+                        β(t) = FA<sub>c</sub>U<sub>ij</sub>(t)/ṁ<sub>c</sub>(t)c<sub>c</sub>
+                    </div>
+                    <div class="equation">
+                        τ<sub>h</sub>(t) = M<sub>h</sub>/ṁ<sub>h</sub>(t)
+                    </div>
+                    <div class="equation">
+                        τ<sub>c</sub>(t) = M<sub>c</sub>/ṁ<sub>c</sub>(t)
+                    </div>
+                </div>
+            </details>
             
-            <p>Overall heat transfer coefficient:</p>
-            <div class="equation">
-                U(t) = h<sub>h</sub>(t)h<sub>c</sub>(t)/(h<sub>h</sub>(t)+h<sub>c</sub>(t)) = C′(ṁ<sub>h</sub>(t)ṁ<sub>c</sub>(t))<sup>γ</sup>/(ṁ<sub>h</sub><sup>γ</sup>(t)+ṁ<sub>c</sub><sup>γ</sup>(t))
-            </div>
+            <details>
+                <summary>Heat transfer coefficient</summary>
+                <div class="content">
+                    <p>Heat transfer coefficient is modeled empirically as:</p>
+                    <div class="equation">
+                        h(t) = C′ṁ<sup>γ</sup>(t)
+                    </div>
+                    
+                    <p>Overall heat transfer coefficient:</p>
+                    <div class="equation">
+                        U(t) = h<sub>h</sub>(t)h<sub>c</sub>(t)/(h<sub>h</sub>(t)+h<sub>c</sub>(t)) = C′(ṁ<sub>h</sub>(t)ṁ<sub>c</sub>(t))<sup>γ</sup>/(ṁ<sub>h</sub><sup>γ</sup>(t)+ṁ<sub>c</sub><sup>γ</sup>(t))
+                    </div>
+                </div>
+            </details>
             
-            <p>Normalized parameters using reference mass flow ṁ<sub>ref</sub>:</p>
-            <div class="equation">
-                α(t) = α<sub>*</sub>·ṁ<sub>h,ref</sub>/ṁ<sub>h</sub>(t)·U(t)/U<sub>ref</sub>
-            </div>
-            <div class="equation">
-                β(t) = β<sub>*</sub>·ṁ<sub>c,ref</sub>/ṁ<sub>c</sub>(t)·U(t)/U<sub>ref</sub>
-            </div>
-            <div class="equation">
-                U<sub>ref</sub> = C′(ṁ<sub>h,ref</sub>ṁ<sub>c,ref</sub>)<sup>γ</sup>/(ṁ<sub>h,ref</sub><sup>γ</sup>+ṁ<sub>c,ref</sub><sup>γ</sup>)
-            </div>
+            <details>
+                <summary>Normalized parameters</summary>
+                <div class="content">
+                    <p>Normalized parameters using reference mass flow ṁ<sub>ref</sub>:</p>
+                    <div class="equation">
+                        α(t) = α<sub>*</sub>·ṁ<sub>h,ref</sub>/ṁ<sub>h</sub>(t)·U(t)/U<sub>ref</sub>
+                    </div>
+                    <div class="equation">
+                        β(t) = β<sub>*</sub>·ṁ<sub>c,ref</sub>/ṁ<sub>c</sub>(t)·U(t)/U<sub>ref</sub>
+                    </div>
+                    <div class="equation">
+                        U<sub>ref</sub> = C′(ṁ<sub>h,ref</sub>ṁ<sub>c,ref</sub>)<sup>γ</sup>/(ṁ<sub>h,ref</sub><sup>γ</sup>+ṁ<sub>c,ref</sub><sup>γ</sup>)
+                    </div>
+                </div>
+            </details>
             
-            <p>The parameters are estimated using a least squares method with the help of a Kalman filter to estimate the states:</p>
-            <div class="equation">
-                V(θ) = Σ<sub>t=1</sub><sup>N</sup> ξ<sup>T</sup>(t)ξ(t)
-            </div>
-            
-            <p>Fouling factor directly affects U:</p>
-            <div class="equation">
-                U = 1/(1/(A<sub>c</sub>h<sub>c</sub>) + 1/(A<sub>h</sub>h<sub>h</sub>) + R<sub>f</sub>)
-            </div>
-            
-            <h4>Parameter Evolution Visualization</h4>
-            <div class="fouling-plot">
-                <canvas id="foulingCanvas" width="500" height="148"></canvas>
-            </div>
-            <div class="parameter-plot">
-                <canvas id="parameterCanvas" width="500" height="248"></canvas>
-            </div>
-            
-            <div class="slider-container">
-                <label for="foulingRate">Fouling Rate:</label>
-                <input type="range" id="foulingRate" min="0" max="100" value="20">
-                <span id="foulingRateValue">0.0001</span>
-            </div>
-            
-            <div class="slider-container">
-                <label for="noiseLevel">Noise Level:</label>
-                <input type="range" id="noiseLevel" min="0" max="100" value="10">
-                <span id="noiseLevelValue">0.5%</span>
-            </div>
+            <details>
+                <summary>Parameter estimation method</summary>
+                <div class="content">
+                    <p>The parameters are estimated using a least squares method with the help of a Kalman filter to estimate the states:</p>
+                    <div class="equation">
+                        V(θ) = Σ<sub>t=1</sub><sup>N</sup> ξ<sup>T</sup>(t)ξ(t)
+                    </div>
+                    
+                    <p>Fouling factor directly affects U:</p>
+                    <div class="equation">
+                        U = 1/(1/(A<sub>c</sub>h<sub>c</sub>) + 1/(A<sub>h</sub>h<sub>h</sub>) + R<sub>f</sub>)
+                    </div>
+                </div>
+            </details>
         </div>
         
         <div class="detection-section">
             <h3>Fouling Detection</h3>
             <p>When fouling accumulates, the heat transfer coefficient U decreases. Since α and β are proportional to U, they also decrease.</p>
             
-            <p>The Cumulative Sum (CuSum) control chart is used to detect small shifts in the mean of these parameters:</p>
-            <div class="equation">
-                Cus(i) = max{0, (μ<sub>0</sub> - x̄<sub>i</sub>) - K + Cus(i-1)}
-            </div>
-            <p>where:</p>
-            <ul>
-                <li>μ<sub>0</sub> is the reference value (no fouling)</li>
-                <li>x̄<sub>i</sub> is the moving average over 40 samples</li>
-                <li>K is the reference value (set to 2σ<sub>θ,clean</sub>)</li>
-                <li>If Cus(i) > H*, then fouling is detected (H* = 3σ<sub>θ,clean</sub>)</li>
-            </ul>
+            <details>
+                <summary>Cumulative Sum (CuSum) Method</summary>
+                <div class="content">
+                    <p>The Cumulative Sum (CuSum) control chart is used to detect small shifts in the mean of these parameters:</p>
+                    <div class="equation">
+                        Cus(i) = max{0, (μ<sub>0</sub> - x̄<sub>i</sub>) - K + Cus(i-1)}
+                    </div>
+                    <p>where:</p>
+                    <ul>
+                        <li>μ<sub>0</sub> is the reference value (no fouling)</li>
+                        <li>x̄<sub>i</sub> is the moving average over 40 samples</li>
+                        <li>K is the reference value (set to 2σ<sub>θ,clean</sub>)</li>
+                        <li>If Cus(i) > H*, then fouling is detected (H* = 3σ<sub>θ,clean</sub>)</li>
+                    </ul>
+                </div>
+            </details>
             
-            <h4>Detection Threshold:</h4>
-            <p>Typical fouling factor range in water heat exchangers: [0.0001, 0.0007] m²·°C/W</p>
-            <p>Detection usually happens at Rf ≈ 0.0001 (lower limit of design factor)</p>
-            
-            <h4>Fouling Detection Visualization</h4>
-            <div class="parameter-plot">
-                <canvas id="detectionCanvas" width="500" height="248"></canvas>
-            </div>
-            
-            <div class="controls">
-                <button id="startButton">Start Simulation</button>
-                <button id="resetButton">Reset</button>
-            </div>
-            
-            <div id="detectionResult">
-                <p>Status: No fouling detected</p>
-                <p>Time to detection: N/A</p>
-            </div>
+            <details>
+                <summary>Detection Thresholds</summary>
+                <div class="content">
+                    <h4>Detection Threshold:</h4>
+                    <p>Typical fouling factor range in water heat exchangers: [0.0001, 0.0007] m²·°C/W</p>
+                    <p>Detection usually happens at Rf ≈ 0.0001 (lower limit of design factor)</p>
+                </div>
+            </details>
         </div>
     </div>
     
@@ -349,6 +721,22 @@
             
             params.detectionTime = 0;
             document.getElementById('detectionResult').innerHTML = '<p>Status: No fouling detected</p><p>Time to detection: N/A</p>';
+            
+            // Уничтожаем существующие графики при сбросе
+            if (foulingChart) {
+                foulingChart.destroy();
+                foulingChart = null;
+            }
+            
+            if (parameterChart) {
+                parameterChart.destroy();
+                parameterChart = null;
+            }
+            
+            if (detectionChart) {
+                detectionChart.destroy();
+                detectionChart = null;
+            }
             
             drawHeatExchanger();
             drawFoulingPlot();
@@ -573,101 +961,168 @@
                     `<p>Parameter reduction: α: ${((1 - alphaAvg/params.alpha) * 100).toFixed(1)}%, β: ${((1 - betaAvg/params.beta) * 100).toFixed(1)}%</p>`;
             }
             
-            // Update visualizations
-            drawFoulingPlot();
-            drawParameterPlot();
-            drawDetectionPlot();
+            // Update visualizations every 10 steps or when detection occurs
+            if (params.time % 10 === 0 || params.detectionTime === params.time) {
+                drawHeatExchanger();
+                drawFoulingPlot();
+                drawParameterPlot();
+                drawDetectionPlot();
+            }
             
             // Continue simulation
             if (params.running) {
-                setTimeout(simulationStep, 100);
+                setTimeout(simulationStep, 200);
             }
         }
         
-        // Draw the heat exchanger diagram
+        let heatExchangerChart = null;
+        
         function drawHeatExchanger() {
             const canvas = document.getElementById('heatExchangerCanvas');
             const ctx = canvas.getContext('2d');
+            
+            // Clear canvas
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            // Draw grid for 4x4 sections as in the paper
+            // Get dimensions
+            const width = canvas.width;
+            const height = canvas.height;
             const gridSize = 4;
-            const cellWidth = canvas.width / gridSize;
-            const cellHeight = canvas.height / gridSize;
             
+            // Get current mass flow values from simulation
+            let mh = 1.0;
+            let mc = 1.0;
+            let foulingFactor = 0;
+            
+            if (simulationData.mhValues.length > 0) {
+                mh = simulationData.mhValues[simulationData.mhValues.length - 1];
+                mc = simulationData.mcValues[simulationData.mcValues.length - 1];
+                foulingFactor = simulationData.foulingValues[simulationData.foulingValues.length - 1];
+            }
+            
+            // Create a white background
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, width, height);
+            
+            // Define margins and sizes
+            const topMargin = 30;
+            const bottomMargin = 25;
+            const sideMargin = 25;
+            
+            // Actual grid area
+            const gridWidth = width - 2 * sideMargin;
+            const gridHeight = height - topMargin - bottomMargin;
+            
+            // Cell dimensions
+            const cellWidth = gridWidth / gridSize;
+            const cellHeight = gridHeight / gridSize;
+            
+            // Calculate arrow thickness based on mass flow (between 2 and 6 for visibility)
+            const hotArrowWidth = Math.max(2, Math.min(6, mh * 3));
+            const coldArrowWidth = Math.max(2, Math.min(6, mc * 3));
+            
+            // Add title bar with fouling factor
+            ctx.fillStyle = '#f8f9fa';
+            ctx.fillRect(0, 0, width, topMargin);
+            
+            // Add top header with fouling factor
+            ctx.fillStyle = '#8e44ad';
+            ctx.font = 'bold 14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText(`Fouling factor: ${foulingFactor.toFixed(6)} m²·°C/W`, width/2, topMargin-10);
+            
+            // Draw grid
             ctx.strokeStyle = '#aaa';
             ctx.lineWidth = 1;
             
-            // Draw grid
-            for (let i = 1; i < gridSize; i++) {
-                // Vertical lines
+            // Draw vertical grid lines
+            for (let i = 0; i <= gridSize; i++) {
+                const x = sideMargin + i * cellWidth;
                 ctx.beginPath();
-                ctx.moveTo(i * cellWidth, 0);
-                ctx.lineTo(i * cellWidth, canvas.height);
+                ctx.moveTo(x, topMargin);
+                ctx.lineTo(x, height - bottomMargin);
                 ctx.stroke();
-                
-                // Horizontal lines
+            }
+            
+            // Draw horizontal grid lines
+            for (let i = 0; i <= gridSize; i++) {
+                const y = topMargin + i * cellHeight;
                 ctx.beginPath();
-                ctx.moveTo(0, i * cellHeight);
-                ctx.lineTo(canvas.width, i * cellHeight);
+                ctx.moveTo(sideMargin, y);
+                ctx.lineTo(width - sideMargin, y);
                 ctx.stroke();
             }
             
             // Draw outer border
             ctx.strokeStyle = '#333';
             ctx.lineWidth = 2;
-            ctx.strokeRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeRect(sideMargin, topMargin, gridWidth, gridHeight);
             
-            // Draw flow directions
-            ctx.fillStyle = '#d35400'; // Hot fluid color
-            ctx.strokeStyle = '#d35400';
-            ctx.lineWidth = 3;
+            // Add hot fluid label on top left
+            ctx.textAlign = 'left';
+            ctx.fillStyle = '#d35400';
+            ctx.font = '12px Arial';
+            ctx.fillText(`Hot fluid (ṁh = ${mh.toFixed(2)} kg/s)`, 10, 15);
             
-            // Hot fluid flow (from top to bottom) - as described in Fig. 1 of the paper
-            const arrowSize = 15;
-            for (let i = 0; i < gridSize; i++) {
-                drawArrow(
-                    ctx,
-                    i * cellWidth + cellWidth / 2,
-                    20,
-                    i * cellWidth + cellWidth / 2,
-                    canvas.height - 20,
-                    arrowSize,
-                    5
-                );
-            }
+            // Add cold fluid label on bottom right
+            ctx.textAlign = 'right';
+            ctx.fillStyle = '#3498db';
+            ctx.fillText(`Cold fluid (ṁc = ${mc.toFixed(2)} kg/s)`, width - 10, height - 5);
             
-            // Cold fluid flow (from left to right) - as described in Fig. 1 of the paper
+            // Draw cold fluid flow (from left to right)
             ctx.fillStyle = '#3498db'; // Cold fluid color
             ctx.strokeStyle = '#3498db';
+            ctx.lineWidth = coldArrowWidth;
+            
+            const arrowSize = 15;
             for (let i = 0; i < gridSize; i++) {
+                const y = topMargin + (i + 0.5) * cellHeight;
                 drawArrow(
                     ctx,
-                    20,
-                    i * cellHeight + cellHeight / 2,
-                    canvas.width - 20,
-                    i * cellHeight + cellHeight / 2,
+                    sideMargin + 5,
+                    y,
+                    width - sideMargin - 5,
+                    y,
                     arrowSize,
-                    5
+                    coldArrowWidth
                 );
             }
             
-            // Add labels
-            ctx.fillStyle = '#000';
-            ctx.font = '12px Arial';
-            ctx.fillText('Hot fluid (ṁh)', 10, 15);
-            ctx.fillText('Cold fluid (ṁc)', canvas.width - 100, canvas.height - 5);
+            // Draw hot fluid flow (from top to bottom)
+            ctx.fillStyle = '#d35400'; // Hot fluid color
+            ctx.strokeStyle = '#d35400';
+            ctx.lineWidth = hotArrowWidth;
             
-            // Show section labels as in the model state vector
+            for (let i = 0; i < gridSize; i++) {
+                const x = sideMargin + (i + 0.5) * cellWidth;
+                drawArrow(
+                    ctx,
+                    x,
+                    topMargin + 5,
+                    x,
+                    height - bottomMargin - 5,
+                    arrowSize,
+                    hotArrowWidth
+                );
+            }
+            
+            // Show section labels
             ctx.font = '10px Arial';
+            
             for (let i = 0; i < gridSize; i++) {
                 for (let j = 0; j < gridSize; j++) {
-                    // Use the notation Th,ij and Tc,ij as in the paper
-                    ctx.fillStyle = '#d35400';
-                    ctx.fillText(`Th,${j+1}${i+1}`, i * cellWidth + 5, j * cellHeight + 15);
+                    const cellX = sideMargin + i * cellWidth;
+                    const cellY = topMargin + j * cellHeight;
                     
+                    // Hot fluid labels - в верхнем левом углу ячейки
+                    ctx.fillStyle = '#d35400';
+                    ctx.textAlign = 'left';
+                    ctx.fillText(`Th,${j+1}${i+1}`, cellX + 5, cellY + 15);
+                    
+                    // Cold fluid labels - в нижнем правом углу ячейки
                     ctx.fillStyle = '#3498db';
-                    ctx.fillText(`Tc,${j+1}${i+1}`, i * cellWidth + cellWidth - 40, j * cellHeight + cellHeight - 5);
+                    ctx.textAlign = 'right';
+                    ctx.fillText(`Tc,${j+1}${i+1}`, cellX + cellWidth - 5, cellY + cellHeight - 5);
                 }
             }
         }
@@ -702,262 +1157,240 @@
             ctx.fill();
         }
         
-        // Draw fouling evolution plot
+        let foulingChart = null;
+        
+        // Draw fouling evolution plot using Chart.js
         function drawFoulingPlot() {
-            const canvas = document.getElementById('foulingCanvas');
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const ctx = document.getElementById('foulingChart').getContext('2d');
             
-            const width = canvas.width;
-            const height = canvas.height;
-            const padding = 40;
+            // Prepare datasets
+            const foulingData = [];
+            for (let i = 0; i < simulationData.timePoints.length; i++) {
+                foulingData.push({
+                    x: simulationData.timePoints[i],
+                    y: simulationData.foulingValues[i]
+                });
+            }
             
-            // Draw axes
-            ctx.strokeStyle = '#000';
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(padding, padding);
-            ctx.lineTo(padding, height - padding);
-            ctx.lineTo(width - padding, height - padding);
-            ctx.stroke();
-            
-            // Add labels
-            ctx.fillStyle = '#000';
-            ctx.font = '12px Arial';
-            ctx.fillText('Time', width / 2, height - 10);
-            ctx.save();
-            ctx.translate(15, height / 2);
-            ctx.rotate(-Math.PI / 2);
-            ctx.fillText('Fouling Factor R_f (m²·°C/W)', 0, 0);
-            ctx.restore();
-            
-            // Determine max time for scaling
-            const maxTime = Math.max(200, simulationData.timePoints.length > 0 ? 
-                simulationData.timePoints[simulationData.timePoints.length - 1] : 0);
-            
-            // Scale factors
-            const timeScale = (width - 2 * padding) / maxTime;
-            const valueScale = (height - 2 * padding) / params.maxFouling;
-            
-            // Draw reference lines for typical fouling factors
+            // Create horizontal lines for reference values
             const typicalLow = 0.0001; // Lower limit of typical fouling factor
             const typicalHigh = 0.0004; // Upper limit shown in the simulation
             
-            // Lower reference line
-            ctx.strokeStyle = '#27ae60';
-            ctx.lineWidth = 1;
-            ctx.setLineDash([5, 5]);
-            ctx.beginPath();
-            const lowY = height - padding - typicalLow * valueScale;
-            ctx.moveTo(padding, lowY);
-            ctx.lineTo(width - padding, lowY);
-            ctx.stroke();
-            
-            ctx.fillStyle = '#27ae60';
-            ctx.fillText(`Typical lower design limit (${typicalLow})`, padding + 5, lowY - 5);
-            
-            // Upper reference line
-            ctx.strokeStyle = '#e74c3c';
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            const highY = height - padding - typicalHigh * valueScale;
-            ctx.moveTo(padding, highY);
-            ctx.lineTo(width - padding, highY);
-            ctx.stroke();
-            ctx.setLineDash([]);
-            
-            ctx.fillStyle = '#e74c3c';
-            ctx.fillText(`Maximum simulated fouling (${typicalHigh})`, padding + 5, highY - 5);
-            
-            // Draw fouling evolution
-            ctx.strokeStyle = '#8e44ad';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            for (let i = 0; i < simulationData.timePoints.length; i++) {
-                const x = padding + simulationData.timePoints[i] * timeScale;
-                const y = height - padding - simulationData.foulingValues[i] * valueScale;
-                
-                if (i === 0) {
-                    ctx.moveTo(x, y);
-                } else {
-                    ctx.lineTo(x, y);
-                }
-            }
-            ctx.stroke();
-            
-            // Draw fouling start line
-            if (params.foulingStart > 0) {
-                ctx.strokeStyle = '#27ae60';
-                ctx.lineWidth = 1;
-                ctx.setLineDash([5, 5]);
-                ctx.beginPath();
-                const foulingX = padding + params.foulingStart * timeScale;
-                ctx.moveTo(foulingX, padding);
-                ctx.lineTo(foulingX, height - padding);
-                ctx.stroke();
-                ctx.setLineDash([]);
-                
-                ctx.fillStyle = '#27ae60';
-                ctx.fillText('Fouling Start', foulingX - 30, padding - 5);
+            if (!foulingChart) {
+                // Create chart if it doesn't exist
+                foulingChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        datasets: [
+                            {
+                                label: 'Fouling Factor',
+                                data: foulingData,
+                                borderColor: '#8e44ad',
+                                backgroundColor: 'rgba(142, 68, 173, 0.1)',
+                                borderWidth: 2,
+                                pointRadius: 0,
+                                fill: false
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        animation: {
+                            duration: 0 // Отключаем анимацию для более плавного обновления
+                        },
+                        scales: {
+                            x: {
+                                type: 'linear',
+                                title: {
+                                    display: true,
+                                    text: 'Time'
+                                }
+                            },
+                            y: {
+                                min: 0,
+                                max: params.maxFouling * 1.1,
+                                title: {
+                                    display: true,
+                                    text: 'Fouling Factor R_f (m²·°C/W)'
+                                }
+                            }
+                        },
+                        plugins: {
+                            annotation: {
+                                annotations: {
+                                    lowLine: {
+                                        type: 'line',
+                                        yMin: typicalLow,
+                                        yMax: typicalLow,
+                                        borderColor: '#27ae60',
+                                        borderWidth: 1,
+                                        borderDash: [5, 5],
+                                        label: {
+                                            content: `Typical lower design limit (${typicalLow})`,
+                                            enabled: true,
+                                            position: 'start'
+                                        }
+                                    },
+                                    highLine: {
+                                        type: 'line',
+                                        yMin: typicalHigh,
+                                        yMax: typicalHigh,
+                                        borderColor: '#e74c3c',
+                                        borderWidth: 1,
+                                        borderDash: [5, 5],
+                                        label: {
+                                            content: `Maximum simulated fouling (${typicalHigh})`,
+                                            enabled: true,
+                                            position: 'end'
+                                        }
+                                    },
+                                    foulingStart: params.foulingStart > 0 ? {
+                                        type: 'line',
+                                        xMin: params.foulingStart,
+                                        xMax: params.foulingStart,
+                                        borderColor: '#27ae60',
+                                        borderWidth: 1,
+                                        borderDash: [5, 5],
+                                        label: {
+                                            content: 'Fouling Start',
+                                            enabled: true,
+                                            position: 'top'
+                                        }
+                                    } : undefined
+                                }
+                            }
+                        }
+                    }
+                });
+            } else {
+                // Update existing chart data
+                foulingChart.data.datasets[0].data = foulingData;
+                foulingChart.update('none'); // Update without animation for smoother performance
             }
         }
         
-        // Draw parameter plot
+        let parameterChart = null;
+        
+        // Draw parameter plot using Chart.js
         function drawParameterPlot() {
-            const canvas = document.getElementById('parameterCanvas');
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const ctx = document.getElementById('parameterChart').getContext('2d');
             
-            const width = canvas.width;
-            const height = canvas.height;
-            const padding = 40;
+            // Destroy previous chart if it exists
+            if (parameterChart) {
+                parameterChart.destroy();
+            }
             
-            // Draw axes
-            ctx.strokeStyle = '#000';
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(padding, padding);
-            ctx.lineTo(padding, height - padding);
-            ctx.lineTo(width - padding, height - padding);
-            ctx.stroke();
+            // Prepare datasets for alpha and beta parameters
+            const alphaData = [];
+            const betaData = [];
             
-            // Add labels
-            ctx.fillStyle = '#000';
-            ctx.font = '12px Arial';
-            ctx.fillText('Time', width / 2, height - 10);
-            ctx.save();
-            ctx.translate(15, height / 2);
-            ctx.rotate(-Math.PI / 2);
-            ctx.fillText('Parameter Value', 0, 0);
-            ctx.restore();
-            
-            // Determine max time for scaling
-            const maxTime = Math.max(200, simulationData.timePoints.length > 0 ? 
-                simulationData.timePoints[simulationData.timePoints.length - 1] : 0);
-            
-            // Scale factors
-            const timeScale = (width - 2 * padding) / maxTime;
-            const valueScale = (height - 2 * padding) / 0.15; // Max parameter value is around 0.15
-            
-            // Draw parameter lines
-            // Alpha (red)
-            ctx.strokeStyle = '#e74c3c';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            let lastX = 0, lastY = 0;
             for (let i = 0; i < simulationData.timePoints.length; i++) {
-                const x = padding + simulationData.timePoints[i] * timeScale;
-                const y = height - padding - simulationData.alphaValues[i] * valueScale;
+                alphaData.push({
+                    x: simulationData.timePoints[i],
+                    y: simulationData.alphaValues[i]
+                });
                 
-                if (i === 0) {
-                    ctx.moveTo(x, y);
-                } else {
-                    ctx.lineTo(x, y);
+                betaData.push({
+                    x: simulationData.timePoints[i],
+                    y: simulationData.betaValues[i]
+                });
+            }
+            
+            parameterChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [
+                        {
+                            label: 'Alpha Parameter',
+                            data: alphaData,
+                            borderColor: '#e74c3c',
+                            backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            fill: false
+                        },
+                        {
+                            label: 'Beta Parameter',
+                            data: betaData,
+                            borderColor: '#3498db',
+                            backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 0 // Отключаем анимацию для более плавного обновления
+                    },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            title: {
+                                display: true,
+                                text: 'Time'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Parameter Value'
+                            }
+                        }
+                    },
+                    plugins: {
+                        annotation: {
+                            annotations: {
+                                foulingStart: params.foulingStart > 0 ? {
+                                    type: 'line',
+                                    xMin: params.foulingStart,
+                                    xMax: params.foulingStart,
+                                    borderColor: '#27ae60',
+                                    borderWidth: 1,
+                                    borderDash: [5, 5],
+                                    label: {
+                                        content: 'Fouling Start',
+                                        enabled: true,
+                                        position: 'top'
+                                    }
+                                } : undefined
+                            }
+                        }
+                    }
                 }
-                lastX = x;
-                lastY = y;
-            }
-            ctx.stroke();
-            
-            // Add label for alpha at the end of the line
-            if (simulationData.timePoints.length > 0) {
-                ctx.fillStyle = '#e74c3c';
-                ctx.fillText('α', lastX + 5, lastY);
-            }
-            
-            // Beta (blue)
-            ctx.strokeStyle = '#3498db';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            for (let i = 0; i < simulationData.timePoints.length; i++) {
-                const x = padding + simulationData.timePoints[i] * timeScale;
-                const y = height - padding - simulationData.betaValues[i] * valueScale;
-                
-                if (i === 0) {
-                    ctx.moveTo(x, y);
-                } else {
-                    ctx.lineTo(x, y);
-                }
-                lastX = x;
-                lastY = y;
-            }
-            ctx.stroke();
-            
-            // Add label for beta at the end of the line
-            if (simulationData.timePoints.length > 0) {
-                ctx.fillStyle = '#3498db';
-                ctx.fillText('β', lastX + 5, lastY);
-            }
-            
-            // Draw reference lines
-            ctx.strokeStyle = '#aaa';
-            ctx.lineWidth = 1;
-            ctx.setLineDash([2, 2]);
-            
-            // Alpha reference line
-            ctx.beginPath();
-            const alphaRefY = height - padding - params.alpha * valueScale;
-            ctx.moveTo(padding, alphaRefY);
-            ctx.lineTo(width - padding, alphaRefY);
-            ctx.stroke();
-            
-            // Beta reference line
-            ctx.beginPath();
-            const betaRefY = height - padding - params.beta * valueScale;
-            ctx.moveTo(padding, betaRefY);
-            ctx.lineTo(width - padding, betaRefY);
-            ctx.stroke();
-            ctx.setLineDash([]);
-            
-            // Draw fouling start line
-            if (params.foulingStart > 0) {
-                ctx.strokeStyle = '#27ae60';
-                ctx.lineWidth = 1;
-                ctx.setLineDash([5, 5]);
-                ctx.beginPath();
-                const foulingX = padding + params.foulingStart * timeScale;
-                ctx.moveTo(foulingX, padding);
-                ctx.lineTo(foulingX, height - padding);
-                ctx.stroke();
-                ctx.setLineDash([]);
-                
-                ctx.fillStyle = '#27ae60';
-                ctx.fillText('Fouling Start', foulingX - 30, padding - 10);
-            }
+            });
         }
         
         // Draw detection plot (CuSum)
+        let detectionChart = null;
+        
         function drawDetectionPlot() {
-            const canvas = document.getElementById('detectionCanvas');
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const ctx = document.getElementById('detectionChart').getContext('2d');
             
-            const width = canvas.width;
-            const height = canvas.height;
-            const padding = 40;
+            // Destroy previous chart if it exists
+            if (detectionChart) {
+                detectionChart.destroy();
+            }
             
-            // Draw axes
-            ctx.strokeStyle = '#000';
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(padding, padding);
-            ctx.lineTo(padding, height - padding);
-            ctx.lineTo(width - padding, height - padding);
-            ctx.stroke();
+            // Prepare datasets for CuSum alpha and beta
+            const cusumAlphaData = [];
+            const cusumBetaData = [];
             
-            // Add labels
-            ctx.fillStyle = '#000';
-            ctx.font = '12px Arial';
-            ctx.fillText('Time', width / 2, height - 10);
-            ctx.save();
-            ctx.translate(15, height / 2);
-            ctx.rotate(-Math.PI / 2);
-            ctx.fillText('CuSum Value', 0, 0);
-            ctx.restore();
-            
-            // Determine max time for scaling
-            const maxTime = Math.max(200, simulationData.timePoints.length > 0 ? 
-                simulationData.timePoints[simulationData.timePoints.length - 1] : 0);
+            for (let i = 0; i < simulationData.timePoints.length; i++) {
+                cusumAlphaData.push({
+                    x: simulationData.timePoints[i],
+                    y: simulationData.cusumAlpha[i]
+                });
+                
+                cusumBetaData.push({
+                    x: simulationData.timePoints[i],
+                    y: simulationData.cusumBeta[i]
+                });
+            }
             
             // Find maximum CuSum value for scaling
             let maxCusum = Math.max(params.cusum_H * 1.5, 0.02); // Minimum value to show
@@ -965,101 +1398,107 @@
                 maxCusum = Math.max(maxCusum, simulationData.cusumAlpha[i], simulationData.cusumBeta[i]);
             }
             
-            // Scale factors
-            const timeScale = (width - 2 * padding) / maxTime;
-            const valueScale = (height - 2 * padding) / maxCusum;
+            // Build annotations object
+            const annotations = {
+                threshold: {
+                    type: 'line',
+                    yMin: params.cusum_H,
+                    yMax: params.cusum_H,
+                    borderColor: '#e67e22',
+                    borderWidth: 1,
+                    borderDash: [5, 5],
+                    label: {
+                        content: `Threshold (H* = ${params.cusum_H})`,
+                        enabled: true,
+                        position: 'start'
+                    }
+                },
+                foulingStart: params.foulingStart > 0 ? {
+                    type: 'line',
+                    xMin: params.foulingStart,
+                    xMax: params.foulingStart,
+                    borderColor: '#27ae60',
+                    borderWidth: 1,
+                    borderDash: [5, 5],
+                    label: {
+                        content: 'Fouling Start',
+                        enabled: true,
+                        position: 'top'
+                    }
+                } : undefined
+            };
             
-            // Draw threshold line (H*)
-            ctx.strokeStyle = '#e67e22';
-            ctx.lineWidth = 1;
-            ctx.setLineDash([5, 5]);
-            ctx.beginPath();
-            const thresholdY = height - padding - params.cusum_H * valueScale;
-            ctx.moveTo(padding, thresholdY);
-            ctx.lineTo(width - padding, thresholdY);
-            ctx.stroke();
-            ctx.setLineDash([]);
-            
-            ctx.fillStyle = '#e67e22';
-            ctx.fillText(`Threshold (H* = ${params.cusum_H})`, padding + 5, thresholdY - 5);
-            
-            // Draw CuSum for alpha (red)
-            ctx.strokeStyle = '#e74c3c';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            let lastX = 0, lastY = 0;
-            for (let i = 0; i < simulationData.timePoints.length; i++) {
-                const x = padding + simulationData.timePoints[i] * timeScale;
-                const y = height - padding - simulationData.cusumAlpha[i] * valueScale;
-                
-                if (i === 0) {
-                    ctx.moveTo(x, y);
-                } else {
-                    ctx.lineTo(x, y);
-                }
-                lastX = x;
-                lastY = y;
-            }
-            ctx.stroke();
-            
-            // Add label for CuSum alpha at the end of the line
-            if (simulationData.timePoints.length > 0) {
-                ctx.fillStyle = '#e74c3c';
-                ctx.fillText('CuSum α', lastX + 5, lastY);
-            }
-            
-            // Draw CuSum for beta (blue)
-            ctx.strokeStyle = '#3498db';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            for (let i = 0; i < simulationData.timePoints.length; i++) {
-                const x = padding + simulationData.timePoints[i] * timeScale;
-                const y = height - padding - simulationData.cusumBeta[i] * valueScale;
-                
-                if (i === 0) {
-                    ctx.moveTo(x, y);
-                } else {
-                    ctx.lineTo(x, y);
-                }
-                lastX = x;
-                lastY = y;
-            }
-            ctx.stroke();
-            
-            // Add label for CuSum beta at the end of the line
-            if (simulationData.timePoints.length > 0) {
-                ctx.fillStyle = '#3498db';
-                ctx.fillText('CuSum β', lastX + 5, lastY);
-            }
-            
-            // Draw fouling start line
-            if (params.foulingStart > 0) {
-                ctx.strokeStyle = '#27ae60';
-                ctx.lineWidth = 1;
-                ctx.setLineDash([5, 5]);
-                ctx.beginPath();
-                const foulingX = padding + params.foulingStart * timeScale;
-                ctx.moveTo(foulingX, padding);
-                ctx.lineTo(foulingX, height - padding);
-                ctx.stroke();
-                ctx.setLineDash([]);
-            }
-            
-            // Draw detection time line if detected
+            // Add detection time line if detected
             if (params.detectionTime > 0) {
-                ctx.strokeStyle = '#8e44ad';
-                ctx.lineWidth = 1;
-                ctx.setLineDash([2, 2]);
-                ctx.beginPath();
-                const detectionX = padding + params.detectionTime * timeScale;
-                ctx.moveTo(detectionX, padding);
-                ctx.lineTo(detectionX, height - padding);
-                ctx.stroke();
-                ctx.setLineDash([]);
-                
-                ctx.fillStyle = '#8e44ad';
-                ctx.fillText('Detection', detectionX - 20, padding - 10);
+                annotations.detection = {
+                    type: 'line',
+                    xMin: params.detectionTime,
+                    xMax: params.detectionTime,
+                    borderColor: '#8e44ad',
+                    borderWidth: 1,
+                    borderDash: [2, 2],
+                    label: {
+                        content: 'Detection',
+                        enabled: true,
+                        position: 'top'
+                    }
+                };
             }
+            
+            detectionChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [
+                        {
+                            label: 'CuSum α',
+                            data: cusumAlphaData,
+                            borderColor: '#e74c3c',
+                            backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            fill: false
+                        },
+                        {
+                            label: 'CuSum β',
+                            data: cusumBetaData,
+                            borderColor: '#3498db',
+                            backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 0 // Отключаем анимацию для более плавного обновления
+                    },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            title: {
+                                display: true,
+                                text: 'Time'
+                            }
+                        },
+                        y: {
+                            min: 0,
+                            max: maxCusum * 1.1,
+                            title: {
+                                display: true,
+                                text: 'CuSum Value'
+                            }
+                        }
+                    },
+                    plugins: {
+                        annotation: {
+                            annotations: annotations
+                        }
+                    }
+                }
+            });
         }
         
         // Event listeners
