@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cross-Flow Heat Exchanger Fouling Detection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: space-between;
+        }
+        .model-section, .parameters-section, .detection-section {
+            flex: 1;
+            min-width: 300px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            background-color: #f9f9f9;
+        }
+        .equation {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            overflow-x: auto;
+            font-family: 'Times New Roman', Times, serif;
+            text-align: center;
+        }
+        .parameter-plot {
+            width: 100%;
+            height: 250px;
+            margin: 15px 0;
+            background-color: white;
+            border: 1px solid #ddd;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        button {
+            padding: 8px 15px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .heat-exchanger-diagram {
+            width: 100%;
+            height: 200px;
+            margin: 15px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: white;
+        }
+        .slider-container {
+            margin: 10px 0;
+        }
+        .slider-container label {
+            display: inline-block;
+            width: 150px;
+        }
+        canvas {
+            background-color: white;
+        }
+        .tab {
+            margin-left: 20px;
+        }
+        .code-explanation {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        .fouling-plot {
+            width: 100%;
+            height: 150px;
+            margin: 15px 0;
+            background-color: white;
+            border: 1px solid #ddd;
+        }
+        .matrix-container {
+            max-width: 100%;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Fouling Detection in Cross-Flow Heat Exchanger Based on Physical Modeling</h1>
+    
+    <p>This interactive module demonstrates the method described in the paper by O. Gudmundsson, O.P. Palsson, H. Palsson, and S. Lalot for detecting fouling in cross-flow heat exchangers using physical modeling.</p>
+    
+    <h2>Model Overview</h2>
+    <p>The model is based on dividing the heat exchanger into equal sections on both the hot and cold sides. The states of the model are the temperatures in these sections, and the model is written in state space form.</p>
+    
+    <div class="container">
+        <div class="model-section">
+            <h3>Physical Model</h3>
+            <p>The differential energy balance equation for each section is:</p>
+            <div class="equation">
+                MC<sub>ij</sub>dT<sub>ij</sub>/dt = ṁ(t)c[T<sub>i-n,j-m</sub>(t) - T<sub>ij</sub>(t)] ± AU<sub>ij</sub>(t)F∆T<sub>ij</sub>(t)
+            </div>
+            
+            <p>Where:</p>
+            <ul>
+                <li>i) is the energy change in section ij at time t</li>
+                <li>ii) is the energy flow in the fluid in section ij</li>
+                <li>iii) is the energy transferred from or to section ij</li>
+                <li>n = 1, m = 0 for cold side, n = 0, m = 1 for hot side</li>
+                <li>Positive sign for cold side, negative for hot side</li>
+            </ul>
+            
+            <p>The arithmetic mean temperature difference:</p>
+            <div class="equation">
+                ∆T<sub>ij</sub>(t) = [T<sub>h,ij-1</sub>(t)+T<sub>h,ij</sub>(t)]/2 - [T<sub>c,i-1,j</sub>(t)+T<sub>c,ij</sub>(t)]/2
+            </div>
+            
+            <p>Correction factor F is calculated using the NTU method:</p>
+            <div class="equation">
+                F = ∆T(minimum fluid)/(NTU·∆T<sub>LMTD</sub>)
+            </div>
+
+            <p>The state space representation with parameters:</p>
+            <div class="equation">
+                d/dt T = A(ṁ, θ, F)T + B(ṁ, θ, F)T<sub>in</sub>
+            </div>
+            
+            <p>For a 4×4 grid model, the state vector and matrices are:</p>
+            <div class="matrix-container">
+                <img src="/api/placeholder/650/200" alt="State space matrix representation (16)">
+            </div>
+            
+            <div class="heat-exchanger-diagram">
+                <canvas id="heatExchangerCanvas" width="500" height="198"></canvas>
+            </div>
+        </div>
+        
+        <div class="parameters-section">
+            <h3>Parameter Estimation</h3>
+            <p>The model parameters are defined as:</p>
+            <div class="equation">
+                α(t) = FA<sub>h</sub>U<sub>ij</sub>(t)/ṁ<sub>h</sub>(t)c<sub>h</sub>
+            </div>
+            <div class="equation">
+                β(t) = FA<sub>c</sub>U<sub>ij</sub>(t)/ṁ<sub>c</sub>(t)c<sub>c</sub>
+            </div>
+            <div class="equation">
+                τ<sub>h</sub>(t) = M<sub>h</sub>/ṁ<sub>h</sub>(t)
+            </div>
+            <div class="equation">
+                τ<sub>c</sub>(t) = M<sub>c</sub>/ṁ<sub>c</sub>(t)
+            </div>
+            
+            <p>Heat transfer coefficient is modeled empirically as:</p>
+            <div class="equation">
+                h(t) = C′ṁ<sup>γ</sup>(t)
+            </div>
+            
+            <p>Overall heat transfer coefficient:</p>
+            <div class="equation">
+                U(t) = h<sub>h</sub>(t)h<sub>c</sub>(t)/(h<sub>h</sub>(t)+h<sub>c</sub>(t)) = C′(ṁ<sub>h</sub>(t)ṁ<sub>c</sub>(t))<sup>γ</sup>/(ṁ<sub>h</sub><sup>γ</sup>(t)+ṁ<sub>c</sub><sup>γ</sup>(t))
+            </div>
+            
+            <p>Normalized parameters using reference mass flow ṁ<sub>ref</sub>:</p>
+            <div class="equation">
+                α(t) = α<sub>*</sub>·ṁ<sub>h,ref</sub>/ṁ<sub>h</sub>(t)·U(t)/U<sub>ref</sub>
+            </div>
+            <div class="equation">
+                β(t) = β<sub>*</sub>·ṁ<sub>c,ref</sub>/ṁ<sub>c</sub>(t)·U(t)/U<sub>ref</sub>
+            </div>
+            <div class="equation">
+                U<sub>ref</sub> = C′(ṁ<sub>h,ref</sub>ṁ<sub>c,ref</sub>)<sup>γ</sup>/(ṁ<sub>h,ref</sub><sup>γ</sup>+ṁ<sub>c,ref</sub><sup>γ</sup>)
+            </div>
+            
+            <p>The parameters are estimated using a least squares method with the help of a Kalman filter to estimate the states:</p>
+            <div class="equation">
+                V(θ) = Σ<sub>t=1</sub><sup>N</sup> ξ<sup>T</sup>(t)ξ(t)
+            </div>
+            
+            <p>Fouling factor directly affects U:</p>
+            <div class="equation">
+                U = 1/(1/(A<sub>c</sub>h<sub>c</sub>) + 1/(A<sub>h</sub>h<sub>h</sub>) + R<sub>f</sub>)
+            </div>
+            
+            <h4>Parameter Evolution Visualization</h4>
+            <div class="fouling-plot">
+                <canvas id="foulingCanvas" width="500" height="148"></canvas>
+            </div>
+            <div class="parameter-plot">
+                <canvas id="parameterCanvas" width="500" height="248"></canvas>
+            </div>
+            
+            <div class="slider-container">
+                <label for="foulingRate">Fouling Rate:</label>
+                <input type="range" id="foulingRate" min="0" max="100" value="20">
+                <span id="foulingRateValue">0.0001</span>
+            </div>
+            
+            <div class="slider-container">
+                <label for="noiseLevel">Noise Level:</label>
+                <input type="range" id="noiseLevel" min="0" max="100" value="10">
+                <span id="noiseLevelValue">0.5%</span>
+            </div>
+        </div>
+        
+        <div class="detection-section">
+            <h3>Fouling Detection</h3>
+            <p>When fouling accumulates, the heat transfer coefficient U decreases. Since α and β are proportional to U, they also decrease.</p>
+            
+            <p>The Cumulative Sum (CuSum) control chart is used to detect small shifts in the mean of these parameters:</p>
+            <div class="equation">
+                Cus(i) = max{0, (μ<sub>0</sub> - x̄<sub>i</sub>) - K + Cus(i-1)}
+            </div>
+            <p>where:</p>
+            <ul>
+                <li>μ<sub>0</sub> is the reference value (no fouling)</li>
+                <li>x̄<sub>i</sub> is the moving average over 40 samples</li>
+                <li>K is the reference value (set to 2σ<sub>θ,clean</sub>)</li>
+                <li>If Cus(i) > H*, then fouling is detected (H* = 3σ<sub>θ,clean</sub>)</li>
+            </ul>
+            
+            <h4>Detection Threshold:</h4>
+            <p>Typical fouling factor range in water heat exchangers: [0.0001, 0.0007] m²·°C/W</p>
+            <p>Detection usually happens at Rf ≈ 0.0001 (lower limit of design factor)</p>
+            
+            <h4>Fouling Detection Visualization</h4>
+            <div class="parameter-plot">
+                <canvas id="detectionCanvas" width="500" height="248"></canvas>
+            </div>
+            
+            <div class="controls">
+                <button id="startButton">Start Simulation</button>
+                <button id="resetButton">Reset</button>
+            </div>
+            
+            <div id="detectionResult">
+                <p>Status: No fouling detected</p>
+                <p>Time to detection: N/A</p>
+            </div>
+        </div>
+    </div>
+    
+    <h2>Implementation Details</h2>
+    <p>The simulation implements the model from the paper with 4 sections on each side of the heat exchanger (4x4 grid). The parameters are estimated from simulated data and monitored for fouling detection using the CuSum method as specified in the paper.</p>
+    
+    <ul>
+        <li>Heat exchanger dimensions: 0.5m × 0.5m × 0.002m</li>
+        <li>Water on both sides (c<sub>h</sub> = c<sub>c</sub> = 4200 J/kg·°C, ρ = 998 kg/m³)</li>
+        <li>Reference mass flow: ṁ<sub>h,ref</sub> = ṁ<sub>c,ref</sub> = 1 kg/s</li>
+        <li>Temperature ranges: Hot [54.7°C, 99.4°C], Cold [13.3°C, 27.6°C]</li>
+        <li>Maximum fouling factor: 0.0004 m²·°C/W</li>
+    </ul>
+    
+    <script>
+        // Model parameters based on the paper (Tables 1 & 2, page 452)
+        const params = {
+            // Parameter values from Table 1 & 2:
+            // "Estimated values: α = 0.112, β = 0.126, τh = 0.25, τc = 0.25, γ = 0.8"
+            alpha: 0.112,         // Initial alpha parameter - Table 2
+            beta: 0.126,          // Initial beta parameter - Table 2
+            tau_h: 0.25,          // Tau_h parameter (fixed) - Table 1
+            tau_c: 0.25,          // Tau_c parameter (fixed) - Table 1
+            gamma: 0.8,           // Gamma parameter (exponent of Reynolds number) - Table 1, "literature recommends γ = 0.8"
+            
+            // From page 452: "The overall heat transfer coefficient can be calculated from the relation
+            // mhch(Th,in - Th,out) = AU∆TLMTD to be U = 3.62 kW/m²°C"
+            U_ref: 3.62,          // Reference overall heat transfer coefficient (kW/m²°C)
+            
+            foulingRate: 0.0001,  // Rate of fouling increase
+            noiseLevel: 0.005,    // Noise level for parameters
+            
+            // From page 451: "The parameters K and H were chosen to be 2σθ,clean and 3σθ,clean respectively"
+            cusum_K: 0.001,       // CuSum reference value (2*σ_θ,clean)
+            cusum_H: 0.015,       // CuSum threshold (3*σ_θ,clean)
+            
+            detectionTime: 0,     // Time to detection
+            running: false,       // Simulation state
+            time: 0,              // Current simulation time
+            foulingStart: 100,    // Time step when fouling starts
+            
+            // From page 451: "to save computing time the fouling factor was allowed to be maximum Rf = 0.0004"
+            maxFouling: 0.0004,   // Maximum fouling factor (m²°C/W)
+            
+            // From page 452: "The average massflows was mh = mc = 1 [kg/s]"
+            mh_ref: 1.0,          // Reference mass flow for hot side (kg/s)
+            mc_ref: 1.0,          // Reference mass flow for cold side (kg/s)
+            
+            // From page 452: "The dimensions of the simulated heat exchanger where 0.5 m wide and height"
+            Ah: 0.5,              // Heat transfer area for hot side (m²)
+            Ac: 0.5,              // Heat transfer area for cold side (m²)
+            
+            // From page 452: "It was assumed that the specific heat was constant, ch = cc = 4200 [J/kg°C]"
+            ch: 4200,             // Specific heat for hot fluid (J/kg°C)
+            cc: 4200,             // Specific heat for cold fluid (J/kg°C)
+            
+            // From page 447: "For the cross-flow heat exchanger (Cengel and Turner, 2005) recommend 
+            // to use the representation of ∆T(ij) for the counter-flow heat exchanger with a correction factor F."
+            // From page 452: "The correction factor was estimated from Eq. (6) to be F = 0.95"
+            F: 0.95,              // Correction factor
+            
+            // From page 452: "the density of the fluids where ρ = 998 [kg/m³]"
+            density: 998          // Fluid density (kg/m³)
+        };
+        // Data structure to store simulation results for analysis and visualization
+        let simulationData = {
+            timePoints: [],        // Time steps
+            alphaValues: [],       // Alpha parameter values over time
+            betaValues: [],        // Beta parameter values over time
+            foulingValues: [],     // Fouling factor (Rf) values over time
+            uValues: [],           // Overall heat transfer coefficient values over time
+            cusumAlpha: [],        // Cumulative sum for Alpha parameter
+            cusumBeta: [],         // Cumulative sum for Beta parameter
+            mhValues: [],          // Hot side mass flow values 
+            mcValues: [],          // Cold side mass flow values
+            fValues: []            // Correction factor F values
+        };
+        
+        // Initialize the simulation
+        function initSimulation() {
+            params.time = 0;
+            simulationData = {
+                timePoints: [0],
+                alphaValues: [params.alpha],
+                betaValues: [params.beta],
+                foulingValues: [0],
+                uValues: [params.U_ref],
+                cusumAlpha: [0],
+                cusumBeta: [0],
+                mhValues: [1.0],
+                mcValues: [1.0],
+                fValues: [params.F]
+            };
+            
+            params.detectionTime = 0;
+            document.getElementById('detectionResult').innerHTML = '<p>Status: No fouling detected</p><p>Time to detection: N/A</p>';
+            
+            drawHeatExchanger();
+            drawFoulingPlot();
+            drawParameterPlot();
+            drawDetectionPlot();
+        }
+        
+        // Calculation of NTU and correction factor F according to equations (5-8)
+        function calculateF(mh, mc, U) {
+            // From page 448: Determine minimum fluid mass flow
+            const Ch = mh * params.ch;  // Heat capacity rate for hot fluid
+            const Cc = mc * params.cc;  // Heat capacity rate for cold fluid
+            const Cmin = Math.min(Ch, Cc);
+            const Cmax = Math.max(Ch, Cc);
+            const Cr = Cmin / Cmax;     // Heat capacity ratio
+            
+            // Calculate NTU according to equation (5) on page 448:
+            // "NTU = UA/Cmin"
+            const A = (params.Ah + params.Ac) / 2;  // Average heat transfer area
+            const NTU = U * A / Cmin;
+            
+            // Calculate effectiveness using equation (8) on page 448 for cross-flow with both fluids unmixed:
+            // "ε₂ = 1 - exp[(exp(-NTU^0.78*Cmin/Cmax)-1)/(Cmin/Cmax*NTU^-0.22)]"
+            const effectiveness = 1 - Math.exp((Math.exp(-Math.pow(NTU, 0.78) * Cr) - 1) / (Cr * Math.pow(NTU, -0.22)));
+            
+            // Calculate maximum possible heat transfer
+            // q_max = Cmin * (Th,in - Tc,in)
+            // We'll use average temperatures from the paper
+            const Th_in = 75.0;  // Average hot inlet temperature from the paper page 452
+            const Tc_in = 20.2;  // Average cold inlet temperature from the paper page 452
+            const q_max = Cmin * (Th_in - Tc_in);
+            
+            // Calculate actual heat transfer using effectiveness
+            const q_actual = effectiveness * q_max;
+            
+            // Calculate LMTD (Log Mean Temperature Difference)
+            // We use arithmetic mean as suggested in the paper page 447:
+            // "In (Jonsson et al., 1992) where counter flow heat exchanger where studied
+            // it is suggested to use arithmetic mean temperature difference since the log mean
+            // temperature difference will introduce extra nonlinearities in the model."
+            const Th_out = 65.3;  // From paper page 452
+            const Tc_out = 29.9;  // From paper page 452
+            const dT_1 = Th_in - Tc_out;
+            const dT_2 = Th_out - Tc_in;
+            const LMTD = (dT_1 + dT_2) / 2;  // Arithmetic mean as per equation (2) and page 447
+            
+            // Calculate correction factor F using equation (6) on page 448:
+            // "F = ΔT(minimum fluid)/(NTU·ΔLMTD)"
+            const dT_min = q_actual / Cmin;
+            const F = dT_min / (NTU * LMTD);
+            
+            return {F, NTU, effectiveness};
+        }
+        
+        // Calculate overall heat transfer coefficient based on mass flows and fouling
+        function calculateU(mh, mc, Rf) {
+            // Calculate initial U without fouling to determine F
+            // Using iterative approach since F depends on U and U depends on F
+            
+            // Initial guess for U based on heat transfer coefficients
+            // Calculate heat transfer coefficients based on equation (18) from the paper (page 449):
+            // "h(t) = C'ṁ^γ(t)"
+            // Where γ = 0.8 for turbulent flow as stated in the paper page 452:
+            // "The literature recommends to use y = 0.8 for a turbulent flow (Cengel and Turner, 2005)."
+            const hh = Math.pow(mh, params.gamma); // Using C' = 1 for simplicity
+            const hc = Math.pow(mc, params.gamma);
+            
+            // Initial U calculation without fouling or correction factor
+            let U = 1 / (1/(params.Ah * hh) + 1/(params.Ac * hc));
+            
+            // One-pass correction with F calculation
+            // In a full implementation, this would be iterated until convergence
+            // Note: In the paper, a pre-calculated F = 0.95 is used based on steady-state conditions
+            const {F} = calculateF(mh, mc, U);
+            
+            // Final U calculation with fouling and correction factor F
+            // Using equation (31) from page 450:
+            // "U = 1/(1/(Ac*hc) + 1/(Ah*hh) + Rf)"
+            // Applying correction factor F to adjust heat transfer coefficients
+            U = 1 / (1/(params.Ah * hh * F) + 1/(params.Ac * hc * F) + Rf);
+            
+            return U;
+        }
+        
+        // Run simulation step
+        function simulationStep() {
+            if (!params.running) return;
+            
+            // Increment time
+            params.time++;
+            simulationData.timePoints.push(params.time);
+            
+            // Calculate fouling factor based on Figure 2 of the paper (page 451)
+            // "In (Bohnet, 2005) it is shown that fouling grows with increased rate during the fouling period."
+            // The paper simulates fouling starting after 25% of the dataset (page 451):
+            // "The data used in this study were simulated without fouling for the first 25% of the data points
+            // and then fouling was introduced."
+            let foulingFactor = 0;
+            if (params.time > params.foulingStart) {
+                // Use exponential growth for fouling as shown in Figure 2 of the paper
+                // This models the accelerating growth of fouling described in Bohnet, 2005
+                const timeSinceFouling = (params.time - params.foulingStart) / 300;
+                foulingFactor = Math.min(
+                    params.maxFouling, 
+                    params.foulingRate * Math.exp(4 * timeSinceFouling)
+                );
+            }
+            simulationData.foulingValues.push(foulingFactor);
+            
+            // Randomly vary mass flows as described in the paper page 452:
+            // "During the study the temperatures and massflows were allowed to vary randomly on certain intervals,
+            // the hot temperatures were on the interval [54.7, 99.4]°C and the cold temperatures [13.3, 27.6]°C, 
+            // the mass flow rates were on the interval [0.24, 1.7] kg/s."
+            const mh = 0.24 + Math.random() * 1.46; // [0.24, 1.7] kg/s
+            const mc = 0.24 + Math.random() * 1.46; // [0.24, 1.7] kg/s
+            
+            // Note: In a full implementation, we would also vary temperatures randomly
+            // const Th_in = 54.7 + Math.random() * (99.4 - 54.7); // [54.7, 99.4]°C
+            // const Tc_in = 13.3 + Math.random() * (27.6 - 13.3); // [13.3, 27.6]°C
+            
+            simulationData.mhValues.push(mh);
+            simulationData.mcValues.push(mc);
+            
+            // Calculate U with the fouling factor using equation (31) from page 450:
+            // U = 1/(1/(Ac*hc) + 1/(Ah*hh) + Rf)
+            const U = calculateU(mh, mc, foulingFactor);
+            simulationData.uValues.push(U);
+            
+            // Calculate U_ref for normalization
+            const U_ref = calculateU(params.mh_ref, params.mc_ref, 0);
+            
+            // Store calculated F values for analysis
+            // This would be used in a full implementation to track the correction factor's evolution
+            // simulationData.fValues.push(F); // Uncommented in a full implementation
+            
+            // Calculate normalized parameters as per equations (22-23) on page 449:
+            // "α(t) = α*·(mh_ref/mh(t))·(U(t)/U_ref)"
+            // "β(t) = β*·(mc_ref/mc(t))·(U(t)/U_ref)"
+            const normalized_alpha = params.alpha * (params.mh_ref / mh) * (U / U_ref);
+            const normalized_beta = params.beta * (params.mc_ref / mc) * (U / U_ref);
+            
+            // Add noise to parameters - representing measurement noise in real systems
+            // From page 449: "To compensate for deviations from the correct temperature values 
+            // it is necessary to add a noise term, w(t), to the model"
+            const noise1 = (Math.random() - 0.5) * 2 * params.noiseLevel;
+            const noise2 = (Math.random() - 0.5) * 2 * params.noiseLevel;
+            
+            const noisy_alpha = normalized_alpha * (1 + noise1);
+            const noisy_beta = normalized_beta * (1 + noise2);
+            
+            simulationData.alphaValues.push(noisy_alpha);
+            simulationData.betaValues.push(noisy_beta);
+            
+            // Calculate CuSum for both parameters
+            // Note: In a full implementation, the Kalman filter would be used as in the paper (page 449)
+            // "During the parameter estimation the Kalman filter is used to estimate the states of the model."
+            // For this web visualization, we focus on the parameter estimation and fouling detection.
+            
+            // From page 452: "Experiments showed that the model has problem to estimate
+            // the τh and τc parameters correctly, this can also be seen from Table 1.
+            // The reason for this is that the values of the τh and τc parameters that
+            // minimize the score function are so small that the score function is
+            // insensitive to the exact value of the parameters. To compensate for that
+            // τh* and τc* in Eqs. (24) and (25) where kept constant at their calculated values."
+            
+            // Calculate moving average as specified in the paper page 451:
+            // "When analyzing the parameters the average value of the parameters is calculated 
+            // over a window of a specific length...the CuSum chart is used to monitor the average
+            // value of the parameters for a shift from their reference value."
+            const windowSize = 40;  // As specified in the paper
+            let alphaAvg = 0;
+            let betaAvg = 0;
+            
+            if (simulationData.alphaValues.length >= windowSize) {
+                const recentAlphaValues = simulationData.alphaValues.slice(-windowSize);
+                const recentBetaValues = simulationData.betaValues.slice(-windowSize);
+                
+                alphaAvg = recentAlphaValues.reduce((sum, val) => sum + val, 0) / windowSize;
+                betaAvg = recentBetaValues.reduce((sum, val) => sum + val, 0) / windowSize;
+            } else {
+                alphaAvg = noisy_alpha;
+                betaAvg = noisy_beta;
+            }
+            
+            // CuSum calculation as defined in the paper page 451:
+            // "a) Compute the cumulative sum: Cus(i) = max{0, x̄i - μ0 - K + Cus(i-1)}"
+            // Since we're detecting a decrease in parameter values (α and β decrease with fouling),
+            // we use (μ0 - x̄i) instead of (x̄i - μ0) as stated in the paper on page 450:
+            // "In the case of fouling the parameters will decrease and it is therefore sufficient to do a one-sided test."
+            // "If the process is under control the cumulative sum should fluctuate around the zero, if on the other hand there
+            // is a shift in the value of the parameters the cumulative sum should shift either up- or downward depending on the shift"
+            const alphaRef = params.alpha;  // Reference value (no fouling) - μ0
+            const betaRef = params.beta;    // Reference value (no fouling) - μ0
+            const lastCusumAlpha = simulationData.cusumAlpha[simulationData.cusumAlpha.length - 1];
+            const lastCusumBeta = simulationData.cusumBeta[simulationData.cusumBeta.length - 1];
+            
+            // From page 451: "The parameters K and H were chosen to be 2σθ,clean and 3σθ,clean respectively"
+            // K is the reference value set to 2σ
+            const newCusumAlpha = Math.max(0, lastCusumAlpha + (alphaRef - alphaAvg - params.cusum_K));
+            const newCusumBeta = Math.max(0, lastCusumBeta + (betaRef - betaAvg - params.cusum_K));
+            
+            simulationData.cusumAlpha.push(newCusumAlpha);
+            simulationData.cusumBeta.push(newCusumBeta);
+            
+            // Check for fouling detection using criterion from page 451:
+            // "b) If Cus(i) > H* then a drift is detected."
+            // Where H* is the decision threshold set to 3σ
+            if ((newCusumAlpha > params.cusum_H || newCusumBeta > params.cusum_H) && params.detectionTime === 0) {
+                params.detectionTime = params.time;
+                
+                // Calculate dimensionless detection time as in Figure 4 on page 452:
+                // "The dimensionless detection time on the y-axis can be compared to evolution of fouling in Figure 2."
+                // This allows comparing results with those in the paper (where average detection time was ~0.77)
+                const dimensionlessTime = (params.time - params.foulingStart) / 
+                    (simulationData.timePoints.length - params.foulingStart);
+                
+                document.getElementById('detectionResult').innerHTML = 
+                    '<p>Status: <strong>Fouling Detected!</strong></p>' +
+                    `<p>Time since fouling start: ${params.time - params.foulingStart} time units</p>` +
+                    `<p>Dimensionless detection time: ${dimensionlessTime.toFixed(2)}</p>` +
+                    `<p>Fouling factor at detection: ${foulingFactor.toFixed(6)} m²·°C/W</p>` +
+                    `<p>Parameter reduction: α: ${((1 - alphaAvg/params.alpha) * 100).toFixed(1)}%, β: ${((1 - betaAvg/params.beta) * 100).toFixed(1)}%</p>`;
+            }
+            
+            // Update visualizations
+            drawFoulingPlot();
+            drawParameterPlot();
+            drawDetectionPlot();
+            
+            // Continue simulation
+            if (params.running) {
+                setTimeout(simulationStep, 100);
+            }
+        }
+        
+        // Draw the heat exchanger diagram
+        function drawHeatExchanger() {
+            const canvas = document.getElementById('heatExchangerCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw grid for 4x4 sections as in the paper
+            const gridSize = 4;
+            const cellWidth = canvas.width / gridSize;
+            const cellHeight = canvas.height / gridSize;
+            
+            ctx.strokeStyle = '#aaa';
+            ctx.lineWidth = 1;
+            
+            // Draw grid
+            for (let i = 1; i < gridSize; i++) {
+                // Vertical lines
+                ctx.beginPath();
+                ctx.moveTo(i * cellWidth, 0);
+                ctx.lineTo(i * cellWidth, canvas.height);
+                ctx.stroke();
+                
+                // Horizontal lines
+                ctx.beginPath();
+                ctx.moveTo(0, i * cellHeight);
+                ctx.lineTo(canvas.width, i * cellHeight);
+                ctx.stroke();
+            }
+            
+            // Draw outer border
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw flow directions
+            ctx.fillStyle = '#d35400'; // Hot fluid color
+            ctx.strokeStyle = '#d35400';
+            ctx.lineWidth = 3;
+            
+            // Hot fluid flow (from top to bottom) - as described in Fig. 1 of the paper
+            const arrowSize = 15;
+            for (let i = 0; i < gridSize; i++) {
+                drawArrow(
+                    ctx,
+                    i * cellWidth + cellWidth / 2,
+                    20,
+                    i * cellWidth + cellWidth / 2,
+                    canvas.height - 20,
+                    arrowSize,
+                    5
+                );
+            }
+            
+            // Cold fluid flow (from left to right) - as described in Fig. 1 of the paper
+            ctx.fillStyle = '#3498db'; // Cold fluid color
+            ctx.strokeStyle = '#3498db';
+            for (let i = 0; i < gridSize; i++) {
+                drawArrow(
+                    ctx,
+                    20,
+                    i * cellHeight + cellHeight / 2,
+                    canvas.width - 20,
+                    i * cellHeight + cellHeight / 2,
+                    arrowSize,
+                    5
+                );
+            }
+            
+            // Add labels
+            ctx.fillStyle = '#000';
+            ctx.font = '12px Arial';
+            ctx.fillText('Hot fluid (ṁh)', 10, 15);
+            ctx.fillText('Cold fluid (ṁc)', canvas.width - 100, canvas.height - 5);
+            
+            // Show section labels as in the model state vector
+            ctx.font = '10px Arial';
+            for (let i = 0; i < gridSize; i++) {
+                for (let j = 0; j < gridSize; j++) {
+                    // Use the notation Th,ij and Tc,ij as in the paper
+                    ctx.fillStyle = '#d35400';
+                    ctx.fillText(`Th,${j+1}${i+1}`, i * cellWidth + 5, j * cellHeight + 15);
+                    
+                    ctx.fillStyle = '#3498db';
+                    ctx.fillText(`Tc,${j+1}${i+1}`, i * cellWidth + cellWidth - 40, j * cellHeight + cellHeight - 5);
+                }
+            }
+        }
+        
+        // Helper function to draw arrows
+        function drawArrow(ctx, fromx, fromy, tox, toy, arrowSize, arrowWidth) {
+            // Draw flow line
+            ctx.beginPath();
+            ctx.moveTo(fromx, fromy);
+            ctx.lineTo(tox, toy);
+            ctx.stroke();
+            
+            // Calculate arrow head
+            const angle = Math.atan2(toy - fromy, tox - fromx);
+            
+            // Draw arrow head
+            ctx.beginPath();
+            ctx.moveTo(tox, toy);
+            ctx.lineTo(
+                tox - arrowSize * Math.cos(angle - Math.PI/6),
+                toy - arrowSize * Math.sin(angle - Math.PI/6)
+            );
+            ctx.lineTo(
+                tox - arrowSize * Math.cos(angle) + arrowWidth * Math.cos(angle - Math.PI/2),
+                toy - arrowSize * Math.sin(angle) + arrowWidth * Math.sin(angle - Math.PI/2)
+            );
+            ctx.lineTo(
+                tox - arrowSize * Math.cos(angle + Math.PI/6),
+                toy - arrowSize * Math.sin(angle + Math.PI/6)
+            );
+            ctx.closePath();
+            ctx.fill();
+        }
+        
+        // Draw fouling evolution plot
+        function drawFoulingPlot() {
+            const canvas = document.getElementById('foulingCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const width = canvas.width;
+            const height = canvas.height;
+            const padding = 40;
+            
+            // Draw axes
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, height - padding);
+            ctx.lineTo(width - padding, height - padding);
+            ctx.stroke();
+            
+            // Add labels
+            ctx.fillStyle = '#000';
+            ctx.font = '12px Arial';
+            ctx.fillText('Time', width / 2, height - 10);
+            ctx.save();
+            ctx.translate(15, height / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('Fouling Factor R_f (m²·°C/W)', 0, 0);
+            ctx.restore();
+            
+            // Determine max time for scaling
+            const maxTime = Math.max(200, simulationData.timePoints.length > 0 ? 
+                simulationData.timePoints[simulationData.timePoints.length - 1] : 0);
+            
+            // Scale factors
+            const timeScale = (width - 2 * padding) / maxTime;
+            const valueScale = (height - 2 * padding) / params.maxFouling;
+            
+            // Draw reference lines for typical fouling factors
+            const typicalLow = 0.0001; // Lower limit of typical fouling factor
+            const typicalHigh = 0.0004; // Upper limit shown in the simulation
+            
+            // Lower reference line
+            ctx.strokeStyle = '#27ae60';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            const lowY = height - padding - typicalLow * valueScale;
+            ctx.moveTo(padding, lowY);
+            ctx.lineTo(width - padding, lowY);
+            ctx.stroke();
+            
+            ctx.fillStyle = '#27ae60';
+            ctx.fillText(`Typical lower design limit (${typicalLow})`, padding + 5, lowY - 5);
+            
+            // Upper reference line
+            ctx.strokeStyle = '#e74c3c';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            const highY = height - padding - typicalHigh * valueScale;
+            ctx.moveTo(padding, highY);
+            ctx.lineTo(width - padding, highY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            ctx.fillStyle = '#e74c3c';
+            ctx.fillText(`Maximum simulated fouling (${typicalHigh})`, padding + 5, highY - 5);
+            
+            // Draw fouling evolution
+            ctx.strokeStyle = '#8e44ad';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            for (let i = 0; i < simulationData.timePoints.length; i++) {
+                const x = padding + simulationData.timePoints[i] * timeScale;
+                const y = height - padding - simulationData.foulingValues[i] * valueScale;
+                
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            ctx.stroke();
+            
+            // Draw fouling start line
+            if (params.foulingStart > 0) {
+                ctx.strokeStyle = '#27ae60';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                const foulingX = padding + params.foulingStart * timeScale;
+                ctx.moveTo(foulingX, padding);
+                ctx.lineTo(foulingX, height - padding);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                
+                ctx.fillStyle = '#27ae60';
+                ctx.fillText('Fouling Start', foulingX - 30, padding - 5);
+            }
+        }
+        
+        // Draw parameter plot
+        function drawParameterPlot() {
+            const canvas = document.getElementById('parameterCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const width = canvas.width;
+            const height = canvas.height;
+            const padding = 40;
+            
+            // Draw axes
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, height - padding);
+            ctx.lineTo(width - padding, height - padding);
+            ctx.stroke();
+            
+            // Add labels
+            ctx.fillStyle = '#000';
+            ctx.font = '12px Arial';
+            ctx.fillText('Time', width / 2, height - 10);
+            ctx.save();
+            ctx.translate(15, height / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('Parameter Value', 0, 0);
+            ctx.restore();
+            
+            // Determine max time for scaling
+            const maxTime = Math.max(200, simulationData.timePoints.length > 0 ? 
+                simulationData.timePoints[simulationData.timePoints.length - 1] : 0);
+            
+            // Scale factors
+            const timeScale = (width - 2 * padding) / maxTime;
+            const valueScale = (height - 2 * padding) / 0.15; // Max parameter value is around 0.15
+            
+            // Draw parameter lines
+            // Alpha (red)
+            ctx.strokeStyle = '#e74c3c';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            let lastX = 0, lastY = 0;
+            for (let i = 0; i < simulationData.timePoints.length; i++) {
+                const x = padding + simulationData.timePoints[i] * timeScale;
+                const y = height - padding - simulationData.alphaValues[i] * valueScale;
+                
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+                lastX = x;
+                lastY = y;
+            }
+            ctx.stroke();
+            
+            // Add label for alpha at the end of the line
+            if (simulationData.timePoints.length > 0) {
+                ctx.fillStyle = '#e74c3c';
+                ctx.fillText('α', lastX + 5, lastY);
+            }
+            
+            // Beta (blue)
+            ctx.strokeStyle = '#3498db';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            for (let i = 0; i < simulationData.timePoints.length; i++) {
+                const x = padding + simulationData.timePoints[i] * timeScale;
+                const y = height - padding - simulationData.betaValues[i] * valueScale;
+                
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+                lastX = x;
+                lastY = y;
+            }
+            ctx.stroke();
+            
+            // Add label for beta at the end of the line
+            if (simulationData.timePoints.length > 0) {
+                ctx.fillStyle = '#3498db';
+                ctx.fillText('β', lastX + 5, lastY);
+            }
+            
+            // Draw reference lines
+            ctx.strokeStyle = '#aaa';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([2, 2]);
+            
+            // Alpha reference line
+            ctx.beginPath();
+            const alphaRefY = height - padding - params.alpha * valueScale;
+            ctx.moveTo(padding, alphaRefY);
+            ctx.lineTo(width - padding, alphaRefY);
+            ctx.stroke();
+            
+            // Beta reference line
+            ctx.beginPath();
+            const betaRefY = height - padding - params.beta * valueScale;
+            ctx.moveTo(padding, betaRefY);
+            ctx.lineTo(width - padding, betaRefY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // Draw fouling start line
+            if (params.foulingStart > 0) {
+                ctx.strokeStyle = '#27ae60';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                const foulingX = padding + params.foulingStart * timeScale;
+                ctx.moveTo(foulingX, padding);
+                ctx.lineTo(foulingX, height - padding);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                
+                ctx.fillStyle = '#27ae60';
+                ctx.fillText('Fouling Start', foulingX - 30, padding - 10);
+            }
+        }
+        
+        // Draw detection plot (CuSum)
+        function drawDetectionPlot() {
+            const canvas = document.getElementById('detectionCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const width = canvas.width;
+            const height = canvas.height;
+            const padding = 40;
+            
+            // Draw axes
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(padding, padding);
+            ctx.lineTo(padding, height - padding);
+            ctx.lineTo(width - padding, height - padding);
+            ctx.stroke();
+            
+            // Add labels
+            ctx.fillStyle = '#000';
+            ctx.font = '12px Arial';
+            ctx.fillText('Time', width / 2, height - 10);
+            ctx.save();
+            ctx.translate(15, height / 2);
+            ctx.rotate(-Math.PI / 2);
+            ctx.fillText('CuSum Value', 0, 0);
+            ctx.restore();
+            
+            // Determine max time for scaling
+            const maxTime = Math.max(200, simulationData.timePoints.length > 0 ? 
+                simulationData.timePoints[simulationData.timePoints.length - 1] : 0);
+            
+            // Find maximum CuSum value for scaling
+            let maxCusum = Math.max(params.cusum_H * 1.5, 0.02); // Minimum value to show
+            for (let i = 0; i < simulationData.cusumAlpha.length; i++) {
+                maxCusum = Math.max(maxCusum, simulationData.cusumAlpha[i], simulationData.cusumBeta[i]);
+            }
+            
+            // Scale factors
+            const timeScale = (width - 2 * padding) / maxTime;
+            const valueScale = (height - 2 * padding) / maxCusum;
+            
+            // Draw threshold line (H*)
+            ctx.strokeStyle = '#e67e22';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            const thresholdY = height - padding - params.cusum_H * valueScale;
+            ctx.moveTo(padding, thresholdY);
+            ctx.lineTo(width - padding, thresholdY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            ctx.fillStyle = '#e67e22';
+            ctx.fillText(`Threshold (H* = ${params.cusum_H})`, padding + 5, thresholdY - 5);
+            
+            // Draw CuSum for alpha (red)
+            ctx.strokeStyle = '#e74c3c';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            let lastX = 0, lastY = 0;
+            for (let i = 0; i < simulationData.timePoints.length; i++) {
+                const x = padding + simulationData.timePoints[i] * timeScale;
+                const y = height - padding - simulationData.cusumAlpha[i] * valueScale;
+                
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+                lastX = x;
+                lastY = y;
+            }
+            ctx.stroke();
+            
+            // Add label for CuSum alpha at the end of the line
+            if (simulationData.timePoints.length > 0) {
+                ctx.fillStyle = '#e74c3c';
+                ctx.fillText('CuSum α', lastX + 5, lastY);
+            }
+            
+            // Draw CuSum for beta (blue)
+            ctx.strokeStyle = '#3498db';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            for (let i = 0; i < simulationData.timePoints.length; i++) {
+                const x = padding + simulationData.timePoints[i] * timeScale;
+                const y = height - padding - simulationData.cusumBeta[i] * valueScale;
+                
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+                lastX = x;
+                lastY = y;
+            }
+            ctx.stroke();
+            
+            // Add label for CuSum beta at the end of the line
+            if (simulationData.timePoints.length > 0) {
+                ctx.fillStyle = '#3498db';
+                ctx.fillText('CuSum β', lastX + 5, lastY);
+            }
+            
+            // Draw fouling start line
+            if (params.foulingStart > 0) {
+                ctx.strokeStyle = '#27ae60';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                const foulingX = padding + params.foulingStart * timeScale;
+                ctx.moveTo(foulingX, padding);
+                ctx.lineTo(foulingX, height - padding);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+            
+            // Draw detection time line if detected
+            if (params.detectionTime > 0) {
+                ctx.strokeStyle = '#8e44ad';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([2, 2]);
+                ctx.beginPath();
+                const detectionX = padding + params.detectionTime * timeScale;
+                ctx.moveTo(detectionX, padding);
+                ctx.lineTo(detectionX, height - padding);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                
+                ctx.fillStyle = '#8e44ad';
+                ctx.fillText('Detection', detectionX - 20, padding - 10);
+            }
+        }
+        
+        // Event listeners
+        document.getElementById('startButton').addEventListener('click', function() {
+            if (!params.running) {
+                params.running = true;
+                this.textContent = 'Pause Simulation';
+                simulationStep();
+            } else {
+                params.running = false;
+                this.textContent = 'Start Simulation';
+            }
+        });
+        
+        document.getElementById('resetButton').addEventListener('click', function() {
+            params.running = false;
+            document.getElementById('startButton').textContent = 'Start Simulation';
+            initSimulation();
+        });
+        
+        document.getElementById('foulingRate').addEventListener('input', function() {
+            const value = this.value / 100 * 0.0005;
+            params.foulingRate = value;
+            document.getElementById('foulingRateValue').textContent = value.toFixed(5);
+        });
+        
+        document.getElementById('noiseLevel').addEventListener('input', function() {
+            const value = this.value / 100 * 0.02;
+            params.noiseLevel = value;
+            document.getElementById('noiseLevelValue').textContent = (value * 100).toFixed(1) + '%';
+        });
+        
+        // Initialize on load
+        window.addEventListener('load', initSimulation);
+    </script>
+</body>
+</html>
